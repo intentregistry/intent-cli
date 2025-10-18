@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/intentregistry/intent-cli/internal/version"
+	"github.com/spf13/cobra"
 )
 
 var (
-	root  = &cobra.Command{
+	root = &cobra.Command{
 		Use:     "intent",
 		Short:   "IntentRegistry CLI",
 		Long:    "Publish & install AI Intents from intentregistry.com",
@@ -16,10 +16,18 @@ var (
 )
 
 func init() {
+	// Version output template
 	root.SetVersionTemplate("intent {{.Version}}\n")
+
+	// Global flags
 	root.PersistentFlags().BoolVar(&debug, "debug", false, "Enable verbose debug output")
 
-	// attach all subcommands here (example)
+	// (Optional) completion command UX options
+	root.CompletionOptions.DisableDefaultCmd = false
+	root.CompletionOptions.DisableNoDescFlag = false
+	root.CompletionOptions.HiddenDefaultCmd = true
+
+	// Attach subcommands
 	root.AddCommand(
 		LoginCmd(),
 		PublishCmd(),
@@ -29,6 +37,12 @@ func init() {
 		VersionCmd(),
 		CompletionCmd(),
 	)
+
+	// Disable file fallback for all commands by default
+	applyNoFileCompletion(root)
+
+	// If you WANT file completion for a specific command, re-enable it here:
+	// if pc := getCmd("publish"); pc != nil { pc.ValidArgsFunction = nil }
 }
 
 func RootCmd() *cobra.Command { return root }

@@ -1,63 +1,49 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/spf13/cobra"
 )
 
 func CompletionCmd() *cobra.Command {
-	return &cobra.Command{
+	c := &cobra.Command{
 		Use:   "completion [bash|zsh|fish|powershell]",
 		Short: "Generate shell completion scripts",
-		Long: `To load completions:
-
-Bash:
-$ source <(intent completion bash)
-
-# To load completions for each session, execute once:
-Linux:
-  $ intent completion bash > /etc/bash_completion.d/intent
-MacOS:
-  $ intent completion bash > /usr/local/etc/bash_completion.d/intent
-
-Zsh:
-# If shell completion is not already enabled in your environment you will need
-# to enable it.  You can execute the following once:
-$ echo "autoload -U compinit; compinit" >> ~/.zshrc
-
-# To load completions for each session, execute once:
-$ intent completion zsh > "${fpath[1]}/_intent"
-
-# You will need to start a new shell for this setup to take effect.
-
-Fish:
-$ intent completion fish | source
-
-# To load completions for each session, execute once:
-$ intent completion fish > ~/.config/fish/completions/intent.fish
-
-PowerShell:
-PS> intent completion powershell | Out-String | Invoke-Expression
-
-# To load completions for each session, execute once:
-PS> intent completion powershell > intent.ps1
-# and source this file from your PowerShell profile.
-`,
-		DisableFlagsInUseLine: true,
-		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
-		Args:                  cobra.ExactValidArgs(1),
+		Long:  `Generate shell completion scripts for intent (bash, zsh, fish, powershell).`,
+		Args:  cobra.MaximumNArgs(1), // allow zero args
 		RunE: func(cmd *cobra.Command, args []string) error {
-			switch args[0] {
+			shell := ""
+			if len(args) == 1 {
+				shell = strings.ToLower(args[0])
+			} else {
+				// try to detect from $SHELL
+				if sh := os.Getenv("SHELL"); sh != "" {
+					shell = strings.ToLower(filepath.Base(sh))
+				}
+			}
+
+			switch shell {
 			case "bash":
 				return cmd.Root().GenBashCompletion(cmd.OutOrStdout())
 			case "zsh":
 				return cmd.Root().GenZshCompletion(cmd.OutOrStdout())
 			case "fish":
 				return cmd.Root().GenFishCompletion(cmd.OutOrStdout(), true)
-			case "powershell":
+			case "pwsh", "powershell":
 				return cmd.Root().GenPowerShellCompletion(cmd.OutOrStdout())
 			default:
-				return cmd.Help()
+				// fallback: show helpful message
+				return fmt.Errorf("unknown or missing shell. Use one of: bash|zsh|fish|powershell")
 			}
 		},
 	}
+
+	// Keep helpful usage hints
+	c.ValidArgs = []string{"bash", "zsh", "fish", "powershell"}
+	c.DisableFlagsInUseLine = true
+	return c
 }
