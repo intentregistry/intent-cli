@@ -3,17 +3,26 @@ on:
   push:
     tags: ["v*.*.*"]
 
+permissions:
+  contents: write        # to create GitHub release with assets
+  pull-requests: write   # to open PR to the Homebrew tap
+
 jobs:
   goreleaser:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
+
       - uses: actions/setup-go@v5
         with: { go-version: "1.23.x" }
-      - uses: goreleaser/goreleaser-action@v6
+
+      - name: GoReleaser
+        uses: goreleaser/goreleaser-action@v6
         with:
           version: latest
           args: release --clean
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # for Release
+          # PAT with "Contents: Read/Write" on intentregistry/homebrew-tap
+          HOMEBREW_GITHUB_TOKEN: ${{ secrets.HOMEBREW_GITHUB_TOKEN }}
