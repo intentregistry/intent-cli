@@ -2,7 +2,7 @@ package main
 
 import (
     "log"
-    "github.com/intentregistry/intent-cli/cmd"
+    "github.com/intentregistry/intent-cli/internal/cmd"
 )
 
 func main() {

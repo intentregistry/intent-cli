@@ -23,6 +23,7 @@ func init() {
         WhoamiCmd(),
         SearchCmd(),
         VersionCmd(),
+        CompletionCmd(),
     )
 }
 
