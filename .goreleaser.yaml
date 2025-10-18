@@ -1,0 +1,42 @@
+project_name: intent
+
+builds:
+  - id: intent
+    main: ./cmd/intent
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w
+      - -X github.com/intentregistry/intent-cli/internal/version.Version={{.Version}}
+      - -X github.com/intentregistry/intent-cli/internal/version.Commit={{.Commit}}
+      - -X github.com/intentregistry/intent-cli/internal/version.Date={{.Date}}
+
+archives:
+  - id: tarballs
+    builds: [intent]
+    format: tar.gz
+    name_template: "intent-{{ .Os }}-{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: "checksums.txt"
+
+brews:
+  - name: intent-cli
+    tap:
+      owner: intentregistry
+      name: homebrew-tap
+    folder: Formula
+    description: "IntentRegistry CLI — publish and install AI Intents"
+    homepage: "https://intentregistry.com"
+    license: "MIT"
+    commit_author:
+      name: "Intent Bot"
+      email: "bot@intentregistry.com"
+    install: |
+      bin.install "intent"
+    test: |
+      system "#{bin}/intent", "--help"
