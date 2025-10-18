@@ -7,14 +7,11 @@ import (
 
 func RootCmd() *cobra.Command {
 	c := &cobra.Command{
-		Use:   "intent",
-		Short: "IntentRegistry CLI",
-		Long:  "Publish & install AI Intents from intentregistry.com",
+		Use:     "intent",
+		Short:   "IntentRegistry CLI",
+		Long:    "Publish & install AI Intents from intentregistry.com",
+		Version: version.Short(), // prints only "0.x.y" (or "dev" locally)
 	}
-	c.Version = version.GetVersion()
 	c.SetVersionTemplate("intent {{.Version}}\n")
-	// Flags globales (si quieres)
-	c.PersistentFlags().String("api-url", "", "Override API base URL (default from config)")
-	c.PersistentFlags().String("token", "", "API token (default from config)")
 	return c
 }

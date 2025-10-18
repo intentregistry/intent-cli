@@ -1,24 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/intentregistry/intent-cli/internal/cmd"
+    "log"
+    "github.com/intentregistry/intent-cli/cmd"
 )
 
 func main() {
-	root := cmd.RootCmd()
-	// Registrar subcomandos
-	root.AddCommand(
-		cmd.LoginCmd(),
-		cmd.PublishCmd(),
-		cmd.InstallCmd(),
-		cmd.WhoamiCmd(),
-		cmd.SearchCmd(),
-	)
-	if err := root.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+    if err := cmd.Execute(); err != nil {
+        log.Fatal(err)
+    }
 }

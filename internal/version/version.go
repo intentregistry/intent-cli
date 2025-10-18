@@ -1,28 +1,31 @@
 package version
 
-import (
-	"fmt"
-	"strings"
-)
-
+// These are injected by GoReleaser via -ldflags at build time.
 var (
-	Version = "0.1.0"
-	Commit  = ""
-	Date    = ""
+	Version = "dev" // e.g. "0.2.8" on release; "dev" locally
+	Commit  = ""    // full git SHA
+	Date    = ""    // RFC3339 build time
 )
 
-// GetVersion returns the full version string including dev suffix if applicable
-func GetVersion() string {
-	if Version == "dev" && Commit != "" {
-		return fmt.Sprintf("dev+%s", Commit[:8])
-	}
-	if Commit != "" && !strings.Contains(Version, "dev") {
-		return fmt.Sprintf("%s-dev+%s", Version, Commit[:8])
-	}
+// Short returns just the semantic version (no suffixes).
+func Short() string {
 	return Version
 }
 
-// IsDev returns true if this is a development build
-func IsDev() bool {
-	return Commit != "" && !strings.Contains(Version, "dev")
+// Long returns a human-friendly long string (for "version --long").
+func Long() string {
+	shortSHA := Commit
+	if len(shortSHA) > 7 {
+		shortSHA = shortSHA[:7]
+	}
+	if shortSHA == "" && Date == "" {
+		return Version
+	}
+	if shortSHA == "" {
+		return Version + " (built " + Date + ")"
+	}
+	if Date == "" {
+		return Version + " (commit " + shortSHA + ")"
+	}
+	return Version + " (commit " + shortSHA + ", built " + Date + ")"
 }

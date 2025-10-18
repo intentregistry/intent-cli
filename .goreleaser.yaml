@@ -46,6 +46,7 @@ brews:
     commit_author:
       name: "Sergio Pulido"
       email: "sergio@intentregistry.com"
+    commit_msg_template: "chore(brew): update {{ .ProjectName }} to {{ .Tag }}"
     install: |
       bin.install "intent"
     test: |
