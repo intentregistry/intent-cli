@@ -19,10 +19,8 @@ builds:
       - -X github.com/intentregistry/intent-cli/internal/version.Date={{.Date}}
 
 archives:
-  - id: tarballs
-    builds: [intent]
+  - builds: [intent]
     format: tar.gz
-    # Results: intent-darwin-amd64.tar.gz, intent-darwin-arm64.tar.gz, etc.
     name_template: "intent-{{ .Os }}-{{ .Arch }}"
     files:
       - README.md
