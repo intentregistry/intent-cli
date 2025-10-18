@@ -2,6 +2,7 @@ package httpclient
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"strings"
 	"time"
@@ -61,6 +62,9 @@ func NewWithDebug(cfg config.Config, debug bool) *Client {
 		r.SetDebug(true)
 		// Optional: limit debug body size if you expect big payloads
 		// r.SetDebugBodyLimit(2048)
+	} else {
+		// Tame the noisy WARN/ERROR logs from Resty retries
+		r.SetLogger(nil)
 	}
 
 	return &Client{r: r, baseURL: strings.TrimRight(cfg.APIURL, "/"), debug: debug}
@@ -72,7 +76,11 @@ func (c *Client) Get(path string, out any) error {
 	}
 	resp, err := c.r.R().SetResult(out).Get(path)
 	if err != nil {
-		return err
+		// Provide friendlier error messages for common network issues
+		if ne, ok := err.(*net.DNSError); ok {
+			return fmt.Errorf("cannot resolve API host %q (%v). Set --api-url or INTENT_API_URL", ne.Name, ne)
+		}
+		return fmt.Errorf("network error: %w", err)
 	}
 	if resp.IsError() {
 		return fmt.Errorf("GET %s: %s", path, resp.Status())
@@ -101,7 +109,11 @@ func (c *Client) PostMultipart(path string, fields map[string]any, fileField, fi
 
 	resp, err := req.Post(path)
 	if err != nil {
-		return err
+		// Provide friendlier error messages for common network issues
+		if ne, ok := err.(*net.DNSError); ok {
+			return fmt.Errorf("cannot resolve API host %q (%v). Set --api-url or INTENT_API_URL", ne.Name, ne)
+		}
+		return fmt.Errorf("network error: %w", err)
 	}
 	if resp.IsError() {
 		// include small body snippet for troubleshooting

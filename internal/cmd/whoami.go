@@ -14,6 +14,9 @@ func WhoamiCmd() *cobra.Command {
 		Short: "Show current authenticated user",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg := config.Load()
+			if apiURLFlag != "" {
+				cfg.APIURL = apiURLFlag
+			}
 			cl := httpclient.NewWithDebug(cfg, Debug())
 			var resp struct {
 				Email string `json:"email"`

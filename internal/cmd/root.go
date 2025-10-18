@@ -12,7 +12,8 @@ var (
 		Long:    "Publish & install AI Intents from intentregistry.com",
 		Version: version.Short(),
 	}
-	debug bool
+	debug      bool
+	apiURLFlag string
 )
 
 func init() {
@@ -21,6 +22,7 @@ func init() {
 
 	// Global flags
 	root.PersistentFlags().BoolVar(&debug, "debug", false, "Enable verbose debug output")
+	root.PersistentFlags().StringVar(&apiURLFlag, "api-url", "", "Override API base URL (env INTENT_API_URL)")
 
 	// (Optional) completion command UX options
 	root.CompletionOptions.DisableDefaultCmd = false

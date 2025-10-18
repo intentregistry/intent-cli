@@ -17,6 +17,9 @@ func SearchCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			q := strings.Join(args, " ")
 			cfg := config.Load()
+			if apiURLFlag != "" {
+				cfg.APIURL = apiURLFlag
+			}
 			cl := httpclient.NewWithDebug(cfg, Debug())
 			var resp struct {
 				Items []struct {

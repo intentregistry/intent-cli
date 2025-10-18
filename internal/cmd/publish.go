@@ -38,6 +38,9 @@ func PublishCmd() *cobra.Command {
 			fmt.Println("  sha256:", sha)
 
 			cfg := config.Load()
+			if apiURLFlag != "" {
+				cfg.APIURL = apiURLFlag
+			}
 			cl := httpclient.NewWithDebug(cfg, Debug())
 
 			payload := map[string]any{

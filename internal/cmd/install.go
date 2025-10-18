@@ -17,6 +17,9 @@ func InstallCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			spec := args[0]
 			cfg := config.Load()
+			if apiURLFlag != "" {
+				cfg.APIURL = apiURLFlag
+			}
 			cl := httpclient.NewWithDebug(cfg, Debug())
 			// GET metadata → download artifact → validate → extract into dest
 			fmt.Println("⬇️  Installing", spec, "into", dest)
