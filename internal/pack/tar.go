@@ -14,13 +14,25 @@ func TarGz(srcDir string) (tarPath, sha string, err error) {
 	tmp := filepath.Join(os.TempDir(), "intent-package.tgz")
 	f, err := os.Create(tmp)
 	if err != nil { return "", "", err }
-	defer f.Close()
+	defer func() {
+		if closeErr := f.Close(); closeErr != nil && err == nil {
+			err = closeErr
+		}
+	}()
 
 	gz := gzip.NewWriter(f)
-	defer gz.Close()
+	defer func() {
+		if closeErr := gz.Close(); closeErr != nil && err == nil {
+			err = closeErr
+		}
+	}()
 
 	tw := tar.NewWriter(gz)
-	defer tw.Close()
+	defer func() {
+		if closeErr := tw.Close(); closeErr != nil && err == nil {
+			err = closeErr
+		}
+	}()
 
 	err = filepath.Walk(srcDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil { return err }
@@ -32,7 +44,11 @@ func TarGz(srcDir string) (tarPath, sha string, err error) {
 		if err := tw.WriteHeader(hdr); err != nil { return err }
 		in, err := os.Open(path)
 		if err != nil { return err }
-		defer in.Close()
+		defer func() {
+			if closeErr := in.Close(); closeErr != nil && err == nil {
+				err = closeErr
+			}
+		}()
 		_, err = io.Copy(tw, in)
 		return err
 	})
