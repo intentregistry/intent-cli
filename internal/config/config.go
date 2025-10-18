@@ -44,3 +44,11 @@ func SaveToken(token string) error {
 	v.Set("token", token)
 	return v.WriteConfigAs(filepath.Join(configDir(), "config.yaml"))
 }
+
+func SaveConfig(apiURL, token string) error {
+	if err := EnsureDir(); err != nil { return err }
+	v := viper.New()
+	v.Set("api_url", apiURL)
+	v.Set("token", token)
+	return v.WriteConfigAs(filepath.Join(configDir(), "config.yaml"))
+}

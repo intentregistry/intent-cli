@@ -26,10 +26,19 @@ func NewWithDebug(cfg config.Config, debug bool) *Client {
 	r := resty.New().
 		SetBaseURL(strings.TrimRight(cfg.APIURL, "/")).
 		SetHeader("User-Agent", "intent-cli/"+version.Short()).
-		// sane retries
+		// Exponential backoff retries
 		SetRetryCount(3).
-		SetRetryWaitTime(400 * time.Millisecond).
-		SetRetryMaxWaitTime(3 * time.Second)
+		SetRetryWaitTime(500 * time.Millisecond).
+		SetRetryMaxWaitTime(5 * time.Second).
+		SetRetryAfter(func(client *resty.Client, resp *resty.Response) (time.Duration, error) {
+			// Exponential backoff: 500ms, 1s, 2s, 4s (capped at 5s)
+			attempt := resp.Request.Attempt
+			waitTime := time.Duration(500) * time.Millisecond * time.Duration(1<<attempt)
+			if waitTime > 5*time.Second {
+				waitTime = 5 * time.Second
+			}
+			return waitTime, nil
+		})
 
 	// Add retry condition with logging
 	r.AddRetryCondition(func(resp *resty.Response, err error) bool {

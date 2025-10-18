@@ -17,6 +17,13 @@ func WhoamiCmd() *cobra.Command {
 			if apiURLFlag != "" {
 				cfg.APIURL = apiURLFlag
 			}
+			
+			// Check if user is logged in
+			if cfg.Token == "" {
+				fmt.Println("You're not logged in. Run intent login.")
+				return nil
+			}
+			
 			cl := httpclient.NewWithDebug(cfg, Debug())
 			var resp struct {
 				Email string `json:"email"`
