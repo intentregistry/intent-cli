@@ -33,18 +33,19 @@ brews:
     repository:
       owner: intentregistry
       name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_GITHUB_TOKEN }}"
       branch: main
-      token: "{{ .Env.HOMEBREW_GITHUB_TOKEN }}"   # <-- use your PAT
-      pull_request:
-        enabled: true
-        base: main
+      # Disabled PR for now to go faster
+      # pull_request:
+      #   enabled: true
+      #   base: main
     directory: Formula
     description: "IntentRegistry CLI — publish and install AI Intents"
     homepage: "https://intentregistry.com"
     license: "MIT"
     commit_author:
-      name: "Intent Bot"
-      email: "bot@intentregistry.com"
+      name: "Sergio Pulido"
+      email: "sergio@intentregistry.com"
     install: |
       bin.install "intent"
     test: |
