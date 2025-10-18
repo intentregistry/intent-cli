@@ -38,6 +38,7 @@ dist/
 build/
 /intent
 intent-*
+intent
 
 # Temporary files
 *.tmp
@@ -50,3 +51,6 @@ config.yaml
 
 # Goreleaser
 .goreleaser/
+
+# Structure file
+structure.txt

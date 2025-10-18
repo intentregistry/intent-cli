@@ -15,3 +15,6 @@ pack-dev: build-dev
 
 checksum:
 	shasum -a 256 dist/*.tar.gz || true
+
+tree:
+	tree -a -I '.git|dist|node_modules|*.log|*.tmp|.DS_Store' > structure.txt
