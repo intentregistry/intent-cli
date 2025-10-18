@@ -17,7 +17,7 @@ func SearchCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			q := strings.Join(args, " ")
 			cfg := config.Load()
-			cl := httpclient.New(cfg)
+			cl := httpclient.NewWithDebug(cfg, Debug())
 			var resp struct {
 				Items []struct {
 					Slug  string `json:"slug"`

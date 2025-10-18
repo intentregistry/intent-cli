@@ -38,7 +38,7 @@ func PublishCmd() *cobra.Command {
 			fmt.Println("  sha256:", sha)
 
 			cfg := config.Load()
-			cl := httpclient.New(cfg)
+			cl := httpclient.NewWithDebug(cfg, Debug())
 
 			payload := map[string]any{
 				"private": isPrivate,

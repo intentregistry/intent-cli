@@ -17,7 +17,7 @@ func InstallCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			spec := args[0]
 			cfg := config.Load()
-			cl := httpclient.New(cfg)
+			cl := httpclient.NewWithDebug(cfg, Debug())
 			// GET metadata → download artifact → validate → extract into dest
 			fmt.Println("⬇️  Installing", spec, "into", dest)
 			_ = cl // implementar cuando tengas endpoints

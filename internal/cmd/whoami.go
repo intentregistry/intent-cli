@@ -14,7 +14,7 @@ func WhoamiCmd() *cobra.Command {
 		Short: "Show current authenticated user",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg := config.Load()
-			cl := httpclient.New(cfg)
+			cl := httpclient.NewWithDebug(cfg, Debug())
 			var resp struct {
 				Email string `json:"email"`
 				UserID string `json:"userId"`
