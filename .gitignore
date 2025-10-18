@@ -54,3 +54,7 @@ config.yaml
 
 # Structure file
 structure.txt
+# build outputs
+intent
+/dist
+
