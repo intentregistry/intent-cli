@@ -7,7 +7,7 @@ import (
 func CompletionCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "completion [bash|zsh|fish|powershell]",
-		Short: "Generate completion script",
+		Short: "Generate shell completion scripts",
 		Long: `To load completions:
 
 Bash:
@@ -45,16 +45,18 @@ PS> intent completion powershell > intent.ps1
 		DisableFlagsInUseLine: true,
 		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
 		Args:                  cobra.ExactValidArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			switch args[0] {
 			case "bash":
-				cmd.Root().GenBashCompletion(cmd.OutOrStdout())
+				return cmd.Root().GenBashCompletion(cmd.OutOrStdout())
 			case "zsh":
-				cmd.Root().GenZshCompletion(cmd.OutOrStdout())
+				return cmd.Root().GenZshCompletion(cmd.OutOrStdout())
 			case "fish":
-				cmd.Root().GenFishCompletion(cmd.OutOrStdout(), true)
+				return cmd.Root().GenFishCompletion(cmd.OutOrStdout(), true)
 			case "powershell":
-				cmd.Root().GenPowerShellCompletion(cmd.OutOrStdout())
+				return cmd.Root().GenPowerShellCompletion(cmd.OutOrStdout())
+			default:
+				return cmd.Help()
 			}
 		},
 	}
