@@ -28,12 +28,16 @@ archives:
 checksum:
   name_template: "checksums.txt"
 
-# Homebrew tap automation (improved brews configuration)
-brews:
+homebrew:
   - name: intent-cli
     repository:
       owner: intentregistry
       name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_GITHUB_TOKEN }}"   # <-- use your PAT
+      pull_request:
+        enabled: true
+        base: main
     directory: Formula
     description: "IntentRegistry CLI — publish and install AI Intents"
     homepage: "https://intentregistry.com"

@@ -4,8 +4,8 @@ on:
     tags: ["v*.*.*"]
 
 permissions:
-  contents: write        # to create GitHub release with assets
-  pull-requests: write   # to open PR to the Homebrew tap
+  contents: write
+  pull-requests: write
 
 jobs:
   goreleaser:
@@ -20,9 +20,8 @@ jobs:
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
-          version: '~> v2'
+          version: latest
           args: release --clean
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # for Release
-          # PAT with "Contents: Read/Write" on intentregistry/homebrew-tap
-          HOMEBREW_GITHUB_TOKEN: ${{ secrets.HOMEBREW_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}                 # for release in this repo
+          HOMEBREW_GITHUB_TOKEN: ${{ secrets.HOMEBREW_GITHUB_TOKEN }} # PAT with write on tap
