@@ -11,7 +11,7 @@ func RootCmd() *cobra.Command {
 		Short: "IntentRegistry CLI",
 		Long:  "Publish & install AI Intents from intentregistry.com",
 	}
-	c.Version = version.Version
+	c.Version = version.GetVersion()
 	c.SetVersionTemplate("intent {{.Version}}\n")
 	// Flags globales (si quieres)
 	c.PersistentFlags().String("api-url", "", "Override API base URL (default from config)")

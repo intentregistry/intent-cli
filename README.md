@@ -46,6 +46,17 @@ make pack-darwin-arm64
 make checksum
 ```
 
+### Development Builds
+
+For development and testing, you can create dev builds that include commit information:
+
+``` bash
+make build-dev
+make pack-dev
+```
+
+Dev builds will show version as `dev+<commit-hash>` when you run `intent --version`.
+
 ## Project Structure
 
     intent-cli/
