@@ -19,8 +19,8 @@ builds:
       - -X github.com/intentregistry/intent-cli/internal/version.Date={{.Date}}
 
 archives:
-  - builds: [intent]
-    format: tar.gz
+  - id: tarballs
+    formats: [tar.gz]
     name_template: "intent-{{ .Os }}-{{ .Arch }}"
     files:
       - README.md
@@ -28,12 +28,13 @@ archives:
 checksum:
   name_template: "checksums.txt"
 
-# Homebrew tap automation (we wire token in the CI job below)
+# Homebrew tap automation (improved brews configuration)
 brews:
   - name: intent-cli
     repository:
       owner: intentregistry
       name: homebrew-tap
+    directory: Formula
     description: "IntentRegistry CLI — publish and install AI Intents"
     homepage: "https://intentregistry.com"
     license: "MIT"
