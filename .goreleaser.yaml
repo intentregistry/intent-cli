@@ -1,10 +1,14 @@
 project_name: intent
 
+before:
+  hooks:
+    - go mod tidy
+
 builds:
   - id: intent
     main: ./cmd/intent
     env: [CGO_ENABLED=0]
-    goos: [linux, darwin]
+    goos: [darwin, linux]
     goarch: [amd64, arm64]
     ldflags:
       - -s -w
@@ -16,6 +20,7 @@ archives:
   - id: tarballs
     builds: [intent]
     format: tar.gz
+    # Results: intent-darwin-amd64.tar.gz, intent-darwin-arm64.tar.gz, etc.
     name_template: "intent-{{ .Os }}-{{ .Arch }}"
     files:
       - LICENSE
@@ -24,6 +29,7 @@ archives:
 checksum:
   name_template: "checksums.txt"
 
+# Homebrew tap automation (we wire token in the CI job below)
 brews:
   - name: intent-cli
     tap:
@@ -39,4 +45,7 @@ brews:
     install: |
       bin.install "intent"
     test: |
-      system "#{bin}/intent", "--help"
+      system "#{bin}/intent", "--version"
+
+changelog:
+  use: github
