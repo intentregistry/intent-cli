@@ -1,3 +1,5 @@
+version: 2
+
 project_name: intent
 
 before:
@@ -23,7 +25,6 @@ archives:
     # Results: intent-darwin-amd64.tar.gz, intent-darwin-arm64.tar.gz, etc.
     name_template: "intent-{{ .Os }}-{{ .Arch }}"
     files:
-      - LICENSE
       - README.md
 
 checksum:
@@ -32,10 +33,9 @@ checksum:
 # Homebrew tap automation (we wire token in the CI job below)
 brews:
   - name: intent-cli
-    tap:
+    repository:
       owner: intentregistry
       name: homebrew-tap
-    folder: Formula
     description: "IntentRegistry CLI — publish and install AI Intents"
     homepage: "https://intentregistry.com"
     license: "MIT"
