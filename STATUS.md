@@ -49,14 +49,18 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
   - SHA256 checksum validation
   - Automatic packaging before upload
 
-### ⚠️ `intent install @scope/name[@version]`
-**Status: PARTIALLY IMPLEMENTED**
-- **Implementation**: `internal/cmd/install.go`
+### ✅ `intent install @scope/name[@version]`
+**Status: COMPLETED**
+- **Implementation**: `internal/cmd/install.go` + `internal/httpclient/client.go` + `internal/pack/tar.go`
 - **Features**:
-  - Command structure exists with proper argument parsing
-  - `--dest` flag for destination folder (defaults to "intents")
-  - **Missing**: Actual download and installation logic (marked as TODO in code)
-  - **Status**: Skeleton implementation only
+  - Package metadata fetching from `/v1/packages/resolve` endpoint
+  - Download functionality with progress indicators
+  - SHA256 checksum validation
+  - File extraction to destination folder using tar.gz
+  - Version resolution support (@scope/name@version)
+  - Install manifest creation (`.installed.json`)
+  - Comprehensive error handling and validation
+  - Integration tests with local HTTP server
 
 ### ❌ `intent test [path]`
 **Status: NOT IMPLEMENTED**
@@ -119,25 +123,24 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
 
 ## Summary
 
-**Completed Checkpoints**: 5/7 (71%)
+**Completed Checkpoints**: 6/7 (86%)
 - ✅ `intent login`
 - ✅ `intent run FILE.itml [--inputs k=v]`
 - ✅ `intent package` (via publish)
 - ✅ `intent publish`
+- ✅ `intent install @scope/name[@version]`
 - ✅ Multi-OS releases + checksums
 
-**Partially Completed**: 1/7 (14%)
-- ⚠️ `intent install` (skeleton only)
+**Partially Completed**: 0/7 (0%)
 
 **Missing Checkpoints**: 1/7 (14%)
 - ❌ `intent test [path]`
 
 ## Recommendations
 
-1. **Complete `intent install` implementation**: Add actual download and installation logic
-2. **Implement `intent test` command**: Add CLI testing functionality
-3. **Consider standalone `intent package` command**: Currently embedded in publish command
-4. **Update config format**: Consider changing from YAML to JSON as originally specified
+1. **Implement `intent test` command**: Add CLI testing functionality
+2. **Consider standalone `intent package` command**: Currently embedded in publish command
+3. **Update config format**: Consider changing from YAML to JSON as originally specified
 
 ## Current Version
 - **Version**: 0.2.3-SNAPSHOT-395d52c
