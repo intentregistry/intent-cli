@@ -39,6 +39,7 @@ func init() {
 		RunCmd(),
 		PublishCmd(),
 		InstallCmd(),
+		TestCmd(),
 		WhoamiCmd(),
 		SearchCmd(),
 		VersionCmd(),

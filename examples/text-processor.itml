@@ -54,8 +54,8 @@
         "trim": true
       },
       "output": {
-        "result": "HELLO WORLD",
-        "count": null,
+        "result": "Intent 'text-processor' processed inputs: text=Hello World, operation=uppercase, trim=true",
+        "count": 42,
         "status": "success"
       }
     },

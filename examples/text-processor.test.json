@@ -1,0 +1,13 @@
+{
+  "name": "text-processor.test",
+  "type": "unit",
+  "description": "Unit test for text processor intent",
+  "input": {
+    "text": "Hello World",
+    "operation": "uppercase",
+    "trim": true
+  },
+  "expected": {
+    "status": "success"
+  }
+}

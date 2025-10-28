@@ -62,11 +62,20 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
   - Comprehensive error handling and validation
   - Integration tests with local HTTP server
 
-### ❌ `intent test [path]`
-**Status: NOT IMPLEMENTED**
-- **Missing**: No `test` command found in the codebase
-- **Available**: Integration tests exist in `internal/cmd/integration_test.go` but no CLI command
-- **Required**: Command-line testing functionality for intent packages
+### ✅ `intent test [path]`
+**Status: COMPLETED**
+- **Implementation**: `internal/cmd/test.go` + `internal/cmd/test_test.go`
+- **Features**:
+  - Test discovery for .itml files and .test.json files
+  - Automatic test generation from intent examples
+  - Custom test file support with JSON format
+  - Multiple output formats: text, JSON, JUnit XML
+  - Test coverage reporting
+  - Parallel test execution support
+  - Timeout configuration per test
+  - Flexible output comparison with field aliases
+  - Comprehensive error handling and validation
+  - Integration tests for all functionality
 
 ### ✅ Releases multi‑OS + checksum
 **Status: COMPLETED**
@@ -123,24 +132,26 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
 
 ## Summary
 
-**Completed Checkpoints**: 6/7 (86%)
+**Completed Checkpoints**: 7/7 (100%) 🎉
 - ✅ `intent login`
 - ✅ `intent run FILE.itml [--inputs k=v]`
 - ✅ `intent package` (via publish)
 - ✅ `intent publish`
 - ✅ `intent install @scope/name[@version]`
+- ✅ `intent test [path]`
 - ✅ Multi-OS releases + checksums
 
 **Partially Completed**: 0/7 (0%)
 
-**Missing Checkpoints**: 1/7 (14%)
-- ❌ `intent test [path]`
+**Missing Checkpoints**: 0/7 (0%) 🎉
 
 ## Recommendations
 
-1. **Implement `intent test` command**: Add CLI testing functionality
-2. **Consider standalone `intent package` command**: Currently embedded in publish command
-3. **Update config format**: Consider changing from YAML to JSON as originally specified
+1. **Consider standalone `intent package` command**: Currently embedded in publish command
+2. **Update config format**: Consider changing from YAML to JSON as originally specified
+3. **Add more test formats**: Support for YAML test files and custom test scripts
+4. **Enhance coverage reporting**: More sophisticated coverage analysis
+5. **Add CI/CD integration**: GitHub Actions workflows for automated testing
 
 ## Current Version
 - **Version**: 0.2.3-SNAPSHOT-395d52c

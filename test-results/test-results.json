@@ -1,0 +1,124 @@
+{
+  "total": 4,
+  "passed": 3,
+  "failed": 1,
+  "skipped": 0,
+  "duration": 126208,
+  "results": [
+    {
+      "name": "hello-world.example",
+      "type": "intent",
+      "path": "/Users/nectios/nekotori/dev/intent-ecosystem/intent-cli/examples/hello-world.itml",
+      "description": "Test intent hello-world with example data",
+      "input": {
+        "formal": false,
+        "language": "en",
+        "name": "Alice"
+      },
+      "expected": {
+        "greeting": "Hello Alice!",
+        "status": "success"
+      },
+      "status": "passed",
+      "duration": 0,
+      "output": {
+        "result": "Hello Alice! Welcome to IntentRegistry. Language: en, Formal: false",
+        "status": "success"
+      },
+      "coverage": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 4,
+        "lines": 100,
+        "percentage": 30
+      }
+    },
+    {
+      "name": "hello-world.test",
+      "type": "integration",
+      "path": "/Users/nectios/nekotori/dev/intent-ecosystem/intent-cli/examples/hello-world.itml",
+      "description": "Integration test for hello-world intent",
+      "input": {
+        "formal": false,
+        "language": "en",
+        "name": "TestUser"
+      },
+      "expected": {
+        "result": "Hello TestUser! Welcome to IntentRegistry. Language: en, Formal: false",
+        "status": "success"
+      },
+      "status": "passed",
+      "duration": 0,
+      "output": {
+        "result": "Hello TestUser! Welcome to IntentRegistry. Language: en, Formal: false",
+        "status": "success"
+      },
+      "coverage": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 4,
+        "lines": 100,
+        "percentage": 30
+      }
+    },
+    {
+      "name": "text-processor.example",
+      "type": "intent",
+      "path": "/Users/nectios/nekotori/dev/intent-ecosystem/intent-cli/examples/text-processor.itml",
+      "description": "Test intent text-processor with example data",
+      "input": {
+        "operation": "uppercase",
+        "text": "Hello World",
+        "trim": true
+      },
+      "expected": {
+        "count": 42,
+        "result": "Intent 'text-processor' processed inputs: text=Hello World, operation=uppercase, trim=true",
+        "status": "success"
+      },
+      "status": "failed",
+      "duration": 0,
+      "output": {
+        "count": 42,
+        "result": "Intent 'text-processor' processed inputs: trim=true, text=Hello World, operation=uppercase",
+        "status": "success"
+      },
+      "error": "output does not match expected result",
+      "coverage": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 4,
+        "lines": 100,
+        "percentage": 30
+      }
+    },
+    {
+      "name": "text-processor.test",
+      "type": "unit",
+      "path": "/Users/nectios/nekotori/dev/intent-ecosystem/intent-cli/examples/text-processor.itml",
+      "description": "Unit test for text processor intent",
+      "input": {
+        "operation": "uppercase",
+        "text": "Hello World",
+        "trim": true
+      },
+      "expected": {
+        "status": "success"
+      },
+      "status": "passed",
+      "duration": 0,
+      "output": {
+        "count": 42,
+        "result": "Intent 'text-processor' processed inputs: text=Hello World, operation=uppercase, trim=true",
+        "status": "success"
+      },
+      "coverage": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 4,
+        "lines": 100,
+        "percentage": 30
+      }
+    }
+  ]
+}

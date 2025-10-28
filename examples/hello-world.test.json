@@ -1,0 +1,14 @@
+{
+  "name": "hello-world.test",
+  "type": "integration",
+  "description": "Integration test for hello-world intent",
+  "input": {
+    "name": "TestUser",
+    "language": "en",
+    "formal": false
+  },
+  "expected": {
+    "status": "success",
+    "result": "Hello TestUser! Welcome to IntentRegistry. Language: en, Formal: false"
+  }
+}
