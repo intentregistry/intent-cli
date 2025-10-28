@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/intentregistry/intent-cli/internal/config"
 	"github.com/spf13/cobra"

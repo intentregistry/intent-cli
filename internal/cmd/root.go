@@ -12,8 +12,9 @@ var (
 		Long:    "Publish & install AI Intents from intentregistry.com",
 		Version: version.Short(),
 	}
-	debug      bool
-	apiURLFlag string
+	debug         bool
+	apiURLFlag    string
+	telemetryFlag bool
 )
 
 func init() {
@@ -23,6 +24,7 @@ func init() {
 	// Global flags
 	root.PersistentFlags().BoolVar(&debug, "debug", false, "Enable verbose debug output")
 	root.PersistentFlags().StringVar(&apiURLFlag, "api-url", "", "Override API base URL (env INTENT_API_URL)")
+	root.PersistentFlags().BoolVar(&telemetryFlag, "telemetry", false, "Enable telemetry (env INTENT_TELEMETRY)")
 
 	// (Optional) completion command UX options
 	root.CompletionOptions.DisableDefaultCmd = false
@@ -31,6 +33,8 @@ func init() {
 
 	// Attach subcommands
 	root.AddCommand(
+		InitCmd(),
+		DoctorCmd(),
 		LoginCmd(),
 		PublishCmd(),
 		InstallCmd(),
@@ -50,3 +54,4 @@ func init() {
 func RootCmd() *cobra.Command { return root }
 func Execute() error          { return root.Execute() }
 func Debug() bool             { return debug }
+func Telemetry() bool         { return telemetryFlag }

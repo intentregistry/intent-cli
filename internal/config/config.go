@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	APIURL string
-	Token  string
+	APIURL    string
+	Token     string
+	Telemetry bool
 }
 
 func configDir() string {
@@ -35,7 +36,15 @@ func Load() Config {
 	tok := v.GetString("token")
 	if env := os.Getenv("INTENT_TOKEN"); env != "" { tok = env }
 
-	return Config{APIURL: api, Token: tok}
+	// Telemetry: check environment variable first, then config file
+	telemetry := false
+	if env := os.Getenv("INTENT_TELEMETRY"); env != "" {
+		telemetry = env == "1" || env == "true"
+	} else {
+		telemetry = v.GetBool("telemetry")
+	}
+
+	return Config{APIURL: api, Token: tok, Telemetry: telemetry}
 }
 
 func SaveToken(token string) error {

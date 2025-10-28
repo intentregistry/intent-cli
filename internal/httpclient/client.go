@@ -13,16 +13,21 @@ import (
 )
 
 type Client struct {
-	r       *resty.Client
-	baseURL string
-	debug   bool
+	r          *resty.Client
+	baseURL    string
+	debug      bool
+	telemetry  bool
 }
 
 func New(cfg config.Config) *Client {
-	return NewWithDebug(cfg, false)
+	return NewWithOptions(cfg, false, cfg.Telemetry)
 }
 
 func NewWithDebug(cfg config.Config, debug bool) *Client {
+	return NewWithOptions(cfg, debug, cfg.Telemetry)
+}
+
+func NewWithOptions(cfg config.Config, debug bool, telemetry bool) *Client {
 	r := resty.New().
 		SetBaseURL(strings.TrimRight(cfg.APIURL, "/")).
 		SetHeader("User-Agent", "intent-cli/"+version.Short()).
@@ -57,6 +62,11 @@ func NewWithDebug(cfg config.Config, debug bool) *Client {
 		r.SetAuthToken(cfg.Token)
 	}
 
+	// Add telemetry header if enabled
+	if telemetry {
+		r.SetHeader("X-Telemetry-Enabled", "true")
+	}
+
 	// Redact Authorization header in logs
 	r.OnBeforeRequest(func(c *resty.Client, req *resty.Request) error {
 		if debug || os.Getenv("INTENT_DEBUG") == "1" {
@@ -76,7 +86,7 @@ func NewWithDebug(cfg config.Config, debug bool) *Client {
 		r.SetLogger(nil)
 	}
 
-	return &Client{r: r, baseURL: strings.TrimRight(cfg.APIURL, "/"), debug: debug}
+	return &Client{r: r, baseURL: strings.TrimRight(cfg.APIURL, "/"), debug: debug, telemetry: telemetry}
 }
 
 func (c *Client) Get(path string, out any) error {
@@ -87,9 +97,15 @@ func (c *Client) Get(path string, out any) error {
 	if err != nil {
 		// Provide friendlier error messages for common network issues
 		if ne, ok := err.(*net.DNSError); ok {
-			return fmt.Errorf("cannot resolve API host %q (%v). Set --api-url or INTENT_API_URL", ne.Name, ne)
+			return fmt.Errorf("cannot resolve API host %q (%v). Try: --api-url or check connectivity", ne.Name, ne)
 		}
-		return fmt.Errorf("network error: %w", err)
+		if opErr, ok := err.(*net.OpError); ok {
+			if opErr.Timeout() {
+				return fmt.Errorf("request timeout to %s. Try: --api-url or check connectivity", c.baseURL)
+			}
+			return fmt.Errorf("network error connecting to %s: %w. Try: --api-url or check connectivity", c.baseURL, err)
+		}
+		return fmt.Errorf("network error: %w. Try: --api-url or check connectivity", err)
 	}
 	if resp.IsError() {
 		return fmt.Errorf("GET %s: %s", path, resp.Status())
@@ -120,9 +136,15 @@ func (c *Client) PostMultipart(path string, fields map[string]any, fileField, fi
 	if err != nil {
 		// Provide friendlier error messages for common network issues
 		if ne, ok := err.(*net.DNSError); ok {
-			return fmt.Errorf("cannot resolve API host %q (%v). Set --api-url or INTENT_API_URL", ne.Name, ne)
+			return fmt.Errorf("cannot resolve API host %q (%v). Try: --api-url or check connectivity", ne.Name, ne)
 		}
-		return fmt.Errorf("network error: %w", err)
+		if opErr, ok := err.(*net.OpError); ok {
+			if opErr.Timeout() {
+				return fmt.Errorf("request timeout to %s. Try: --api-url or check connectivity", c.baseURL)
+			}
+			return fmt.Errorf("network error connecting to %s: %w. Try: --api-url or check connectivity", c.baseURL, err)
+		}
+		return fmt.Errorf("network error: %w. Try: --api-url or check connectivity", err)
 	}
 	if resp.IsError() {
 		// include small body snippet for troubleshooting
