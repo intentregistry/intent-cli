@@ -1,0 +1,75 @@
+{
+  "name": "text-processor",
+  "version": "1.0.0",
+  "description": "Processes text input and performs various transformations",
+  "author": "IntentRegistry Team",
+  "license": "MIT",
+  "tags": ["text", "processing", "utility"],
+  "parameters": [
+    {
+      "name": "text",
+      "type": "string",
+      "description": "The text to process",
+      "required": true
+    },
+    {
+      "name": "operation",
+      "type": "string",
+      "description": "The operation to perform on the text",
+      "required": true,
+      "validation": {
+        "options": ["uppercase", "lowercase", "reverse", "word-count", "char-count"]
+      }
+    },
+    {
+      "name": "trim",
+      "type": "boolean",
+      "description": "Whether to trim whitespace",
+      "required": false,
+      "default": true
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "string",
+      "description": "The processed text result"
+    },
+    {
+      "name": "count",
+      "type": "number",
+      "description": "Count information (for count operations)"
+    },
+    {
+      "name": "status",
+      "type": "string",
+      "description": "Execution status"
+    }
+  ],
+  "examples": [
+    {
+      "input": {
+        "text": "Hello World",
+        "operation": "uppercase",
+        "trim": true
+      },
+      "output": {
+        "result": "HELLO WORLD",
+        "count": null,
+        "status": "success"
+      }
+    },
+    {
+      "input": {
+        "text": "Hello World",
+        "operation": "word-count",
+        "trim": true
+      },
+      "output": {
+        "result": "Hello World",
+        "count": 2,
+        "status": "success"
+      }
+    }
+  ]
+}

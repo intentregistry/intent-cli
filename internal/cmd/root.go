@@ -36,6 +36,7 @@ func init() {
 		InitCmd(),
 		DoctorCmd(),
 		LoginCmd(),
+		RunCmd(),
 		PublishCmd(),
 		InstallCmd(),
 		WhoamiCmd(),

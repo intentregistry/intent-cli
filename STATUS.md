@@ -16,11 +16,18 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
   - Environment variable support (`INTENT_API_URL`, `INTENT_TOKEN`)
   - Telemetry configuration support
 
-### ❌ `intent run FILE.itml [--inputs k=v]`
-**Status: NOT IMPLEMENTED**
-- **Missing**: No `run` command found in the codebase
-- **Required**: Command to execute `.itml` files with input parameters
-- **Impact**: Core functionality for running intents is missing
+### ✅ `intent run FILE.itml [--inputs k=v]`
+**Status: COMPLETED**
+- **Implementation**: `internal/cmd/run.go` + `internal/parser/itml.go` + `internal/executor/engine.go`
+- **Features**:
+  - Parse `.itml` files in JSON format
+  - Handle `--inputs k=v` parameter passing with validation
+  - Execute intent logic with template processing
+  - Support `--output-dir` for saving results
+  - Comprehensive error handling and validation
+  - Verbose mode for debugging
+  - Parameter type conversion and validation
+  - Template-based script execution
 
 ### ✅ `intent package [--out dist/]`
 **Status: COMPLETED** (via `publish` command)
@@ -112,8 +119,9 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
 
 ## Summary
 
-**Completed Checkpoints**: 4/7 (57%)
+**Completed Checkpoints**: 5/7 (71%)
 - ✅ `intent login`
+- ✅ `intent run FILE.itml [--inputs k=v]`
 - ✅ `intent package` (via publish)
 - ✅ `intent publish`
 - ✅ Multi-OS releases + checksums
@@ -121,17 +129,15 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
 **Partially Completed**: 1/7 (14%)
 - ⚠️ `intent install` (skeleton only)
 
-**Missing Checkpoints**: 2/7 (29%)
-- ❌ `intent run FILE.itml [--inputs k=v]`
+**Missing Checkpoints**: 1/7 (14%)
 - ❌ `intent test [path]`
 
 ## Recommendations
 
-1. **Implement `intent run` command**: Critical missing functionality for executing intent files
-2. **Complete `intent install` implementation**: Add actual download and installation logic
-3. **Implement `intent test` command**: Add CLI testing functionality
-4. **Consider standalone `intent package` command**: Currently embedded in publish command
-5. **Update config format**: Consider changing from YAML to JSON as originally specified
+1. **Complete `intent install` implementation**: Add actual download and installation logic
+2. **Implement `intent test` command**: Add CLI testing functionality
+3. **Consider standalone `intent package` command**: Currently embedded in publish command
+4. **Update config format**: Consider changing from YAML to JSON as originally specified
 
 ## Current Version
 - **Version**: 0.2.3-SNAPSHOT-395d52c

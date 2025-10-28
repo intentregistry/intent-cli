@@ -1,0 +1,71 @@
+{
+  "name": "hello-world",
+  "version": "1.0.0",
+  "description": "A simple hello world intent that greets users",
+  "author": "IntentRegistry Team",
+  "license": "MIT",
+  "tags": ["example", "hello", "greeting"],
+  "parameters": [
+    {
+      "name": "name",
+      "type": "string",
+      "description": "The name of the person to greet",
+      "required": true,
+      "default": "World"
+    },
+    {
+      "name": "language",
+      "type": "string",
+      "description": "The language for the greeting",
+      "required": false,
+      "default": "en",
+      "validation": {
+        "options": ["en", "es", "fr", "de"]
+      }
+    },
+    {
+      "name": "formal",
+      "type": "boolean",
+      "description": "Whether to use formal greeting",
+      "required": false,
+      "default": false
+    }
+  ],
+  "outputs": [
+    {
+      "name": "greeting",
+      "type": "string",
+      "description": "The generated greeting message"
+    },
+    {
+      "name": "status",
+      "type": "string",
+      "description": "Execution status"
+    }
+  ],
+  "examples": [
+    {
+      "input": {
+        "name": "Alice",
+        "language": "en",
+        "formal": false
+      },
+      "output": {
+        "greeting": "Hello Alice!",
+        "status": "success"
+      }
+    },
+    {
+      "input": {
+        "name": "Bob",
+        "language": "es",
+        "formal": true
+      },
+      "output": {
+        "greeting": "Buenos días, Bob.",
+        "status": "success"
+      }
+    }
+  ],
+  "script": "Hello {{name}}! Welcome to IntentRegistry. Language: {{language}}, Formal: {{formal}}"
+}
