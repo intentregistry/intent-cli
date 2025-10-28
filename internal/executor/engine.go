@@ -113,8 +113,29 @@ func executeTemplate(template string, ctx *ExecutionContext) (ExecuteResult, err
 	// Simple template replacement
 	result := template
 	
-	// Replace input parameters
+	// Create a map of all parameter values (inputs + defaults)
+	paramValues := make(map[string]string)
+	
+	// First, add default values from intent definition
+	for _, param := range ctx.Intent.Parameters {
+		if param.Default != nil {
+			// Convert default value to string
+			if defaultStr, ok := param.Default.(string); ok {
+				paramValues[param.Name] = defaultStr
+			} else {
+				// Convert other types to string
+				paramValues[param.Name] = fmt.Sprintf("%v", param.Default)
+			}
+		}
+	}
+	
+	// Then, override with provided input values
 	for key, value := range ctx.Inputs {
+		paramValues[key] = value
+	}
+	
+	// Replace parameter placeholders
+	for key, value := range paramValues {
 		placeholder := fmt.Sprintf("{{%s}}", key)
 		result = strings.ReplaceAll(result, placeholder, value)
 	}
