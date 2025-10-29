@@ -1,9 +1,13 @@
 package cmd
 
 import (
+	"crypto/ed25519"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/intentregistry/intent-cli/internal/pack"
 	"github.com/spf13/cobra"
@@ -11,29 +15,29 @@ import (
 
 func PackageCmd() *cobra.Command {
 	var (
-		path    string
-        outDir  string
-        format  string
-        unsigned bool
-        signSecret string
+		path       string
+		outDir     string
+		unsigned   bool
+		signKeyPath string
+		scaffold   bool
 	)
 
 	c := &cobra.Command{
-        Use:   "package [path] [--out directory] [--format itpkg|tar.gz]",
-		Short: "Package an intent directory into a tar.gz archive",
-        Long: `Create an intent package from a directory or file.
-        
-Default format is a signed .itpkg (container with payload + checksum + signature).
-Use --format=tar.gz to create a raw tarball instead.
-		
-The package includes all files in the directory and generates a SHA256 checksum.
-For .itpkg, an HMAC-SHA256 signature is added (provide --sign-secret or set --unsigned).
+		Use:   "package [path] [--out directory]",
+		Short: "Package an intent directory into a signed .itpkg archive",
+		Long: `Create a signed .itpkg package from an intent directory.
+
+The package must contain an itpkg.json manifest with name, version, entry, and policies.
+The directory structure must include intents/ and policies/ directories.
+
+Default behavior requires a valid ed25519 signing key. Use --unsigned to create
+unsigned packages (not recommended for production).
 
 Examples:
-  intent package examples/hello.itml
-  intent package examples/hello.itml --out dist/
-  intent package . --format tar.gz --out ./packages
-  intent package . --out ./packages`,
+  intent package examples/hello
+  intent package . --out dist/
+  intent package . --scaffold  # Generate itpkg.json if missing
+  intent package . --sign-key ~/.ssh/intent_sign_key`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 1 {
@@ -69,7 +73,37 @@ Examples:
 				packageName = filepath.Base(packageDir)
 			}
 
+			// Check for itpkg.json
+			manifestPath := filepath.Join(packageDir, "itpkg.json")
+			if _, err := os.Stat(manifestPath); os.IsNotExist(err) {
+				if scaffold {
+					fmt.Printf("📝 Scaffolding itpkg.json...\n")
+					if err := scaffoldItpkgJSON(packageDir, packageName); err != nil {
+						return fmt.Errorf("failed to scaffold itpkg.json: %w", err)
+					}
+					fmt.Println("✅ Created itpkg.json")
+				} else {
+					return fmt.Errorf("itpkg.json not found in %s (use --scaffold to generate)", packageDir)
+				}
+			}
+
 			fmt.Println("📦 Packing:", packageDir)
+
+			// Load signing key
+			var signKey ed25519.PrivateKey
+			if !unsigned {
+				if signKeyPath == "" {
+					signKeyPath = os.Getenv("INTENT_SIGN_KEY")
+				}
+				if signKeyPath == "" {
+					return fmt.Errorf("signing key required (use --sign-key, INTENT_SIGN_KEY env, or --unsigned)")
+				}
+				var err error
+				signKey, err = loadEd25519Key(signKeyPath)
+				if err != nil {
+					return fmt.Errorf("failed to load signing key: %w", err)
+				}
+			}
 
 			// Determine output directory
 			if outDir == "" {
@@ -85,30 +119,28 @@ Examples:
 				return fmt.Errorf("failed to create output directory: %w", err)
 			}
 
-            // Generate package filename
-            var packageFilename string
-            switch format {
-            case "", "itpkg":
-                packageFilename = fmt.Sprintf("%s.itpkg", packageName)
-            case "tar.gz":
-                packageFilename = fmt.Sprintf("%s.tar.gz", packageName)
-            default:
-                return fmt.Errorf("unknown format: %s", format)
-            }
+			// Generate package filename
+			manifest, err := pack.ReadItpkgManifest(manifestPath)
+			if err != nil {
+				return fmt.Errorf("failed to read manifest: %w", err)
+			}
+			
+			// Use name from manifest if available, otherwise use directory name
+			pkgName := manifest.Name
+			if pkgName == "" {
+				pkgName = packageName
+			}
+			// Sanitize package name for filename
+			pkgName = sanitizePackageName(pkgName)
+			packageFilename := fmt.Sprintf("%s-%s.itpkg", pkgName, manifest.Version)
 			packagePath := filepath.Join(outDirAbs, packageFilename)
 
-            // Create the package
-            if format == "tar.gz" {
-                tarball, sha, err := pack.TarGzToPath(packageDir, packagePath)
-                if err != nil { return fmt.Errorf("failed to create package: %w", err) }
-                fmt.Println("  →", tarball)
-                fmt.Println("  sha256:", sha)
-            } else {
-                itpkg, sha, err := pack.CreateItpkg(packageDir, packagePath, signSecret, unsigned)
-                if err != nil { return fmt.Errorf("failed to create .itpkg: %w", err) }
-                fmt.Println("  →", itpkg)
-                fmt.Println("  payload sha256:", sha)
-            }
+			// Create the package
+			itpkg, err := pack.CreateItpkg(packageDir, packagePath, signKey, unsigned)
+			if err != nil {
+				return fmt.Errorf("failed to create .itpkg: %w", err)
+			}
+			fmt.Println("  →", itpkg)
 			fmt.Println("✅ Package created successfully")
 
 			return nil
@@ -116,17 +148,99 @@ Examples:
 	}
 
 	c.Flags().StringVar(&outDir, "out", "", "Output directory for the package (default: current directory)")
-    c.Flags().StringVar(&format, "format", "itpkg", "Package format: itpkg (default) or tar.gz")
-    c.Flags().BoolVar(&unsigned, "unsigned", false, "Allow creating unsigned .itpkg (no sign-secret provided)")
-    c.Flags().StringVar(&signSecret, "sign-secret", "", "HMAC signing secret for .itpkg (defaults to env INTENT_SIGN_SECRET)")
-
-    // Default sign secret from env if not set via flag
-    c.PreRun = func(cmd *cobra.Command, args []string) {
-        if signSecret == "" {
-            signSecret = os.Getenv("INTENT_SIGN_SECRET")
-        }
-    }
+	c.Flags().BoolVar(&unsigned, "unsigned", false, "Allow creating unsigned .itpkg (not recommended)")
+	c.Flags().StringVar(&signKeyPath, "sign-key", "", "Path to ed25519 private key file (defaults to env INTENT_SIGN_KEY)")
+	c.Flags().BoolVar(&scaffold, "scaffold", false, "Generate itpkg.json if missing")
 
 	return c
 }
 
+// scaffoldItpkgJSON creates a minimal itpkg.json file
+func scaffoldItpkgJSON(dir, name string) error {
+	// Check if entrypoint exists
+	entryPoint := "project.app.itml"
+	entryPath := filepath.Join(dir, entryPoint)
+	if _, err := os.Stat(entryPath); os.IsNotExist(err) {
+		entryPoint = "" // Will be lib type
+	}
+
+	manifest := pack.ItpkgManifest{
+		Name:        fmt.Sprintf("@scope/%s", name),
+		Version:     "0.1.0",
+		Description: fmt.Sprintf("Intent package for %s", name),
+		ItmlVersion: "0.1",
+		Capabilities: []string{},
+		Policies: map[string]interface{}{
+			"security": map[string]interface{}{
+				"network": map[string]interface{}{
+					"outbound": map[string]interface{}{
+						"deny": []string{"*"},
+					},
+				},
+			},
+			"privacy": map[string]interface{}{
+				"pii": map[string]interface{}{
+					"export": "deny",
+				},
+			},
+			"energy": map[string]interface{}{
+				"mode": "balanced",
+			},
+		},
+	}
+
+	if entryPoint == "" {
+		manifest.Type = "lib"
+	} else {
+		manifest.Entry = entryPoint
+		manifest.Type = "app"
+		manifest.Capabilities = []string{"ui.render", "http.outbound"}
+	}
+
+	manifestJSON, err := json.MarshalIndent(manifest, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	manifestPath := filepath.Join(dir, "itpkg.json")
+	return os.WriteFile(manifestPath, manifestJSON, 0644)
+}
+
+// loadEd25519Key loads an ed25519 private key from a file (hex or PEM format)
+func loadEd25519Key(path string) (ed25519.PrivateKey, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	// Try hex format first (64 bytes = 128 hex chars)
+	if len(data) == 128 || len(data) == 129 { // 128 or 128+\n
+		hexKey := strings.TrimSpace(string(data))
+		keyBytes, err := hex.DecodeString(hexKey)
+		if err == nil && len(keyBytes) == ed25519.PrivateKeySize {
+			return ed25519.PrivateKey(keyBytes), nil
+		}
+	}
+
+	// TODO: Add PEM format support if needed
+	return nil, fmt.Errorf("unsupported key format; expected hex-encoded ed25519 private key (%d bytes)", ed25519.PrivateKeySize*2)
+}
+
+// sanitizePackageName sanitizes a package name for use in filenames
+func sanitizePackageName(name string) string {
+	// Replace @scope/name with scope-name
+	name = strings.ReplaceAll(name, "@", "")
+	name = strings.ReplaceAll(name, "/", "-")
+	// Remove any other invalid characters
+	var sanitized strings.Builder
+	for _, r := range name {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '-' || r == '_' {
+			sanitized.WriteRune(r)
+		}
+	}
+	result := sanitized.String()
+	if result == "" {
+		result = "package"
+	}
+	return result
+}
