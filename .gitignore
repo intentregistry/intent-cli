@@ -39,6 +39,7 @@ build/
 /intent
 intent-*
 intent
+*.itpkg
 
 # Temporary files
 *.tmp
