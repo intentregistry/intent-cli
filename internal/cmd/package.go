@@ -107,13 +107,18 @@ Examples:
 				if signKeyPath == "" {
 					signKeyPath = os.Getenv("INTENT_SIGN_KEY")
 				}
-				if signKeyPath == "" {
-					return fmt.Errorf("signing key required (use --sign-key, INTENT_SIGN_KEY env, or --unsigned)")
-				}
-				var err error
-				signKey, err = loadEd25519Key(signKeyPath)
-				if err != nil {
-					return fmt.Errorf("failed to load signing key: %w", err)
+				if signKeyPath != "" {
+					// Check if file exists before trying to load
+					if _, err := os.Stat(signKeyPath); os.IsNotExist(err) {
+						return fmt.Errorf("signing key file not found: %s\n\nOptions:\n  - Use --unsigned flag for development/testing\n  - Generate a key: ./gen_intent_key.sh\n  - Set INTENT_SIGN_KEY to a valid key path", signKeyPath)
+					}
+					var err error
+					signKey, err = loadEd25519Key(signKeyPath)
+					if err != nil {
+						return fmt.Errorf("failed to load signing key: %w\n\nUse --unsigned flag for development/testing, or generate a new key with ./gen_intent_key.sh", err)
+					}
+				} else {
+					return fmt.Errorf("signing key required (use --sign-key, INTENT_SIGN_KEY env, or --unsigned)\n\nFor development/testing, use: intent package . --unsigned")
 				}
 			}
 
@@ -232,18 +237,24 @@ func scaffoldItpkgJSON(dir, name string) error {
 // loadEd25519Key loads an ed25519 private key from a file (hex or PEM format)
 func loadEd25519Key(path string) (ed25519.PrivateKey, error) {
 	// Expand ~ and environment variables in path
+	expandedPath := path
 	if strings.HasPrefix(path, "~/") {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
 			return nil, fmt.Errorf("failed to get home directory: %w", err)
 		}
-		path = filepath.Join(homeDir, path[2:])
+		expandedPath = filepath.Join(homeDir, path[2:])
 	}
-	path = os.ExpandEnv(path) // Expand $VAR and ${VAR}
+	expandedPath = os.ExpandEnv(expandedPath) // Expand $VAR and ${VAR}
 	
-	data, err := os.ReadFile(path)
+	// Check if file exists before trying to read
+	if _, err := os.Stat(expandedPath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("key file not found: %s (expanded from: %s)", expandedPath, path)
+	}
+	
+	data, err := os.ReadFile(expandedPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read key file %s: %w", path, err)
+		return nil, fmt.Errorf("failed to read key file %s: %w", expandedPath, err)
 	}
 
 	// Try hex format first (64 bytes = 128 hex chars)
