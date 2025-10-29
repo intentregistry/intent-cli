@@ -155,8 +155,19 @@ Examples:
 	return c
 }
 
-// scaffoldItpkgJSON creates a minimal itpkg.json file
+// scaffoldItpkgJSON creates a minimal itpkg.json file and required directories
 func scaffoldItpkgJSON(dir, name string) error {
+	// Create required directories if they don't exist
+	requiredDirs := []string{"intents", "policies"}
+	for _, dirName := range requiredDirs {
+		dirPath := filepath.Join(dir, dirName)
+		if _, err := os.Stat(dirPath); os.IsNotExist(err) {
+			if err := os.MkdirAll(dirPath, 0755); err != nil {
+				return fmt.Errorf("failed to create directory %s: %w", dirName, err)
+			}
+		}
+	}
+
 	// Check if entrypoint exists
 	entryPoint := "project.app.itml"
 	entryPath := filepath.Join(dir, entryPoint)
