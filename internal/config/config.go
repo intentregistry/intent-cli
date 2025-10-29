@@ -36,10 +36,8 @@ func LoadEnvFile() {
 	for {
 		envPath := filepath.Join(dir, ".env")
 		if _, err := os.Stat(envPath); err == nil {
-			// Found .env file, load it
-			if err := gotenv.Load(envPath); err == nil {
-				// Environment variables are now loaded
-			}
+			// Found .env file, load it (ignore errors - .env is optional)
+			_ = gotenv.Load(envPath)
 			break
 		}
 
