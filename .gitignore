@@ -61,5 +61,7 @@ intent
 
 private_key.pem
 
-*.hex
-*.pem
+# Environment files
+.env
+.env.local
+.env.*.local

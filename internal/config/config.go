@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/viper"
+	"github.com/subosito/gotenv"
 )
 
 type Config struct {
@@ -22,7 +23,46 @@ func EnsureDir() error {
 	return os.MkdirAll(configDir(), 0o755)
 }
 
+// LoadEnvFile loads .env file from project root if it exists
+func LoadEnvFile() {
+	// Try to find project root (look for go.mod or .git)
+	wd, err := os.Getwd()
+	if err != nil {
+		return // Can't determine working directory, skip
+	}
+
+	// Walk up the directory tree to find project root
+	dir := wd
+	for {
+		envPath := filepath.Join(dir, ".env")
+		if _, err := os.Stat(envPath); err == nil {
+			// Found .env file, load it
+			if err := gotenv.Load(envPath); err == nil {
+				// Environment variables are now loaded
+			}
+			break
+		}
+
+		// Check if we're at root (has go.mod or .git)
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			break // Found project root
+		}
+		if _, err := os.Stat(filepath.Join(dir, ".git")); err == nil {
+			break // Found git root
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break // Reached filesystem root
+		}
+		dir = parent
+	}
+}
+
 func Load() Config {
+	// Load .env file first (if present in project root)
+	LoadEnvFile()
+
 	v := viper.New()
 	v.SetConfigName("config")
 	v.SetConfigType("yaml")
