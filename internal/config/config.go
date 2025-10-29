@@ -58,8 +58,9 @@ func LoadEnvFile() {
 }
 
 func Load() Config {
-	// Load .env file first (if present in project root)
-	LoadEnvFile()
+	// Note: .env file is NOT loaded here. It's loaded by specific commands
+	// that need it (like 'run'). This keeps CLI config independent from
+	// project-level environment files.
 
 	v := viper.New()
 	v.SetConfigName("config")
