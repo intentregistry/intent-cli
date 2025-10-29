@@ -157,16 +157,45 @@ make pack-darwin-arm64
 make checksum
 ```
 
-### Development Builds
+### Local Testing with Mock API
 
-For development and testing, you can create dev builds that include commit information:
+For complete local testing, you can run the mock API server:
 
 ```bash
-make build-dev
-make pack-dev
+# Build mock API
+go build -o mock-api ./cmd/mock-api
+
+# Run mock API (starts on http://localhost:8080)
+./mock-api
+
+# Configure CLI for local API
+export INTENT_API_URL=http://localhost:8080
+export INTENT_TOKEN=local-dev-token
+
+# Test full workflow
+./intent init test-project --app
+cd test-project
+../intent run intents/hello.itml
+../intent package . --unsigned
+../intent publish .
 ```
 
-Dev builds will show version as `dev+<commit-hash>` when you run `intent --version`.
+See [docs/LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md) for complete testing guide.
+
+### Documentation
+
+- **[USER_GUIDE.md](docs/USER_GUIDE.md)** - Complete guide covering all commands, ITML format, troubleshooting
+- **[LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md)** - Setup, testing, debugging, and CI/CD workflows
+- **[itpkg_definition.md](docs/itpkg_definition.md)** - Detailed .itpkg package format specification
+
+### Example Intents
+
+See `examples/` directory for production-ready intents:
+- `hello-world.itml` - Basic "Hello World" example
+- `weather.itml` - HTTP API integration
+- `text-analyzer.itml` - Text processing
+- `image-processor.itml` - File handling
+- `data-transformer.itml` - Format conversion
 
 ## Project Structure
 

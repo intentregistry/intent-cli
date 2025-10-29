@@ -120,31 +120,67 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
 - **Implementation**: `internal/cmd/completion.go`
 - **Features**: Shell completion for bash, zsh, fish, and PowerShell
 
-## Recent Improvements (v0.3.1+)
+## Recent Improvements (v0.4.0+)
 
-### ✅ Enhanced ITML Format Support
-- **Custom DSL Parser**: Implemented primary ITML format with domain-specific syntax
-- **Multi-format Fallback**: Automatic fallback to JSON/YAML if ITML parsing fails
-- **Workflow Commands**: Support for `→ log()` and `→ return()` workflow syntax
-- **Template Variables**: Dual support for `{name}` and `{{name}}` placeholder syntax
-- **Parameter Definition**: Enhanced parsing of `name (type) default="value"` syntax
-- **Default Value Processing**: Improved template processing with parameter defaults
+### ✅ Mock API Server
+- **Implementation**: `cmd/mock-api/main.go`
+- **Features**:
+  - Full in-memory package registry
+  - All required endpoints: `/v1/packages/publish`, `/resolve`, `/search`, `/tarball/`, `/health`
+  - Support for full publish/install cycle testing locally
+  - SHA256 checksum validation
+  - Version conflict detection
+  - Package metadata storage and retrieval
 
-### ✅ YAML Support
-- **YAML Parser**: Added `gopkg.in/yaml.v3` dependency for YAML file support
-- **Struct Tags**: Added YAML tags to all parser structs for seamless YAML parsing
-- **Format Detection**: Automatic detection and parsing of YAML format files
+### ✅ Comprehensive Documentation
+- **USER_GUIDE.md** (750+ lines):
+  - Complete quick start guide
+  - ITML format reference with examples
+  - All commands: init, run, package, publish, install, test, search, verify
+  - Troubleshooting guide with common errors and solutions
+  - Configuration options (env vars, config file, .env)
+  - Advanced topics: custom policies, capabilities, multi-file projects
 
-### ✅ .itpkg Package Format (v0.3.5+)
-- **Flat Archive Structure**: Single tar.gz with files at root (no nested payload.tar.gz)
-- **itpkg.json Manifest**: Required authoritative manifest with validation rules
-- **MANIFEST.sha256**: File list with SHA256 checksums (sorted, deterministic)
-- **ed25519 Signing**: Cryptographic signature over MANIFEST.sha256 content
-- **Directory Validation**: Required (`intents/`, `policies/`) and recommended (`tests/`, `schemas/`) structure validation
-- **Scaffold Support**: `--scaffold` flag auto-generates `itpkg.json` and required directories
-- **Signing Options**: Support for `--sign-key`, `INTENT_SIGN_KEY` env var, or `--unsigned` flag
-- **Package Types**: Support for both `app` (with entry) and `lib` (without entry) packages
-- **Policy Validation**: Enforces `policies.security.network` for app packages
+- **LOCAL_DEVELOPMENT.md** (400+ lines):
+  - Setup instructions (clone, build, dependencies)
+  - Mock API server setup and usage
+  - CLI configuration options
+  - Full development workflow examples
+  - Testing scenarios: publish/install, updates, signed packages
+  - Debugging tips and common tasks
+  - CI/CD checks and release workflow
+  - Performance benchmarking guide
+
+### ✅ Example Intents (Production Ready)
+- **weather.itml**: HTTP requests, API integration, data transformation
+- **text-analyzer.itml**: Text processing, sentiment analysis, keyword extraction
+- **image-processor.itml**: File operations, image manipulation, format conversion
+- **data-transformer.itml**: Format conversion (JSON/CSV), validation, serialization
+
+All examples follow the ITML DSL format and include:
+- Comprehensive input/output definitions
+- Realistic workflow steps
+- Type annotations
+- Default parameters
+- Detailed descriptions
+
+### ✅ GitHub Actions CI/CD Pipeline
+- **File**: `.github/workflows/ci.yml`
+- **Jobs**:
+  - **Lint**: golangci-lint on all code
+  - **Test**: Unit tests with coverage reporting (codecov integration)
+  - **Build**: Multi-platform builds (Ubuntu, macOS, Windows)
+  - **Release**: Automated releases on version tags with:
+    - GoReleaser configuration
+    - Multi-OS binaries
+    - GitHub release creation
+    - Homebrew formula updates
+
+- **Workflow**:
+  - Runs on push to main/develop and pull requests
+  - Builds artifacts for all platforms
+  - Automatic release on git tag v*
+  - Integrates with codecov for coverage tracking
 
 ## Technical Architecture
 
@@ -188,15 +224,17 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
 ## Recommendations
 
 1. ✅ **Standalone `intent package` command**: Implemented as separate command with full .itpkg format support
-2. **Add `intent verify` command**: Verify package signatures and integrity
-3. **Update config format**: Consider changing from YAML to JSON as originally specified
-4. **Add more test formats**: Support for YAML test files and custom test scripts
-5. **Enhance coverage reporting**: More sophisticated coverage analysis
-6. **Add CI/CD integration**: GitHub Actions workflows for automated testing
+2. ✅ **Mock API server for testing**: Complete in-memory registry with all endpoints
+3. ✅ **GitHub Actions CI/CD**: Automated linting, testing, building, and releasing
+4. ✅ **Comprehensive documentation**: USER_GUIDE.md and LOCAL_DEVELOPMENT.md (1150+ lines)
+5. ✅ **Production-ready examples**: 4 example intents covering common use cases
+6. **Add `intent verify` command**: Verify package signatures and integrity (planned)
+7. **Automation improvements**: Consider caching strategies and parallel builds (future)
+8. **Performance optimization**: Benchmark and optimize large package handling (future)
 
 ## Current Version
-- **Version**: 0.3.7
-- **Commit**: 04ddce1 (latest)
+- **Version**: 0.4.0
+- **Commit**: 885818d (latest)
 - **Date**: 2025-10-29
 
 ---
