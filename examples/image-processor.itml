@@ -1,0 +1,25 @@
+intent "Image Processor"
+description: "Process images - resize, convert formats, optimize"
+itmlVersion: "0.1"
+
+inputs:
+  - image_path (string) required
+  - width (integer) default="800"
+  - height (integer) default="600"
+  - format (string) default="webp"
+  - quality (integer) default="80"
+
+outputs:
+  - output_path (string)
+  - original_size (number)
+  - processed_size (number)
+  - format (string)
+
+workflow:
+  → log("Processing image: {image_path}...")
+  → file.exists(image_path)
+  → image.resize(image_path, width, height)
+  → image.convert(result, format, quality)
+  → file.save(result, "{image_path}.{format}")
+  → log("Image saved successfully")
+  → return(status="ok")

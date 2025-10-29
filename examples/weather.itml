@@ -1,0 +1,19 @@
+intent "Weather Forecast"
+description: "Fetch weather forecast for a location"
+itmlVersion: "0.1"
+
+inputs:
+  - city (string) required default="London"
+  - days (integer) default="3"
+  - units (string) default="metric"
+
+outputs:
+  - temperature (number)
+  - condition (string)
+  - forecast (array)
+
+workflow:
+  → log("Fetching weather for {city}...")
+  → http.get("https://api.weather.example.com/forecast?city={city}&days={days}&units={units}")
+  → transform(input, { temperature: .main.temp, condition: .weather[0].main, forecast: .list })
+  → return(status="ok")

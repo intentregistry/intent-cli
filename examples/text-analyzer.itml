@@ -1,0 +1,28 @@
+intent "Text Analyzer"
+description: "Analyze text for sentiment, keywords, and statistics"
+itmlVersion: "0.1"
+
+inputs:
+  - text (string) required
+  - language (string) default="en"
+  - include_stats (boolean) default="true"
+
+outputs:
+  - word_count (number)
+  - char_count (number)
+  - sentiment (string)
+  - keywords (array)
+  - summary (string)
+
+workflow:
+  → log("Analyzing text of length {text.length}...")
+  → split(text, " ")
+  → count(result)
+  → transform(input, { 
+      word_count: count, 
+      char_count: text.length,
+      sentiment: "neutral",
+      keywords: [],
+      summary: text.substring(0, 100)
+    })
+  → return(status="ok")

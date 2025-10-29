@@ -1,0 +1,24 @@
+intent "Data Transformer"
+description: "Transform data between JSON, CSV, and other formats"
+itmlVersion: "0.1"
+
+inputs:
+  - source_file (string) required
+  - source_format (string) required
+  - target_format (string) required
+  - pretty (boolean) default="true"
+
+outputs:
+  - target_file (string)
+  - conversion_status (string)
+  - record_count (number)
+
+workflow:
+  → log("Transforming {source_file} from {source_format} to {target_format}...")
+  → file.read(source_file)
+  → format.parse(result, source_format)
+  → data.validate(result)
+  → format.serialize(result, target_format, pretty)
+  → file.save(result, "{source_file}.{target_format}")
+  → log("Transformation complete")
+  → return(status="ok", file=result)
