@@ -22,7 +22,7 @@ func PackageCmd() *cobra.Command {
 		scaffold   bool
 	)
 
-	c := &cobra.Command{
+		c := &cobra.Command{
 		Use:   "package [path] [--out directory]",
 		Short: "Package an intent directory into a signed .itpkg archive",
 		Long: `Create a signed .itpkg package from an intent directory.
@@ -30,13 +30,14 @@ func PackageCmd() *cobra.Command {
 The package must contain an itpkg.json manifest with name, version, entry, and policies.
 The directory structure must include intents/ and policies/ directories.
 
+Packages are created in the dist/ directory by default (auto-created if missing).
 Default behavior requires a valid ed25519 signing key. Use --unsigned to create
 unsigned packages (not recommended for production).
 
 Examples:
-  intent package examples/hello
-  intent package . --out dist/
-  intent package . --scaffold  # Generate itpkg.json if missing
+  intent package .                      # Creates dist/package-name-version.itpkg
+  intent package . --out dist/          # Explicit output directory
+  intent package . --scaffold           # Generate itpkg.json if missing
   intent package . --sign-key ~/.ssh/intent_sign_key`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -122,9 +123,9 @@ Examples:
 				}
 			}
 
-			// Determine output directory
+			// Determine output directory (default to dist/)
 			if outDir == "" {
-				outDir = "."
+				outDir = "dist"
 			}
 			outDirAbs, err := filepath.Abs(outDir)
 			if err != nil {
@@ -135,6 +136,7 @@ Examples:
 			if err := os.MkdirAll(outDirAbs, 0755); err != nil {
 				return fmt.Errorf("failed to create output directory: %w", err)
 			}
+			fmt.Printf("📁 Output directory: %s\n", outDirAbs)
 
 			// Generate package filename
 			manifest, err := pack.ReadItpkgManifest(manifestPath)
@@ -164,7 +166,7 @@ Examples:
 		},
 	}
 
-	c.Flags().StringVar(&outDir, "out", "", "Output directory for the package (default: current directory)")
+	c.Flags().StringVar(&outDir, "out", "", "Output directory for the package (default: dist/)")
 	c.Flags().BoolVar(&unsigned, "unsigned", false, "Allow creating unsigned .itpkg (not recommended)")
 	c.Flags().StringVar(&signKeyPath, "sign-key", "", "Path to ed25519 private key file (defaults to env INTENT_SIGN_KEY)")
 	c.Flags().BoolVar(&scaffold, "scaffold", false, "Generate itpkg.json if missing")
