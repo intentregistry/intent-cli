@@ -12,20 +12,27 @@ import (
 func PackageCmd() *cobra.Command {
 	var (
 		path    string
-		outDir  string
+        outDir  string
+        format  string
+        unsigned bool
+        signSecret string
 	)
 
 	c := &cobra.Command{
-		Use:   "package [path] [--out directory]",
+        Use:   "package [path] [--out directory] [--format itpkg|tar.gz]",
 		Short: "Package an intent directory into a tar.gz archive",
-		Long: `Create a tar.gz package from an intent directory.
+        Long: `Create an intent package from a directory or file.
+        
+Default format is a signed .itpkg (container with payload + checksum + signature).
+Use --format=tar.gz to create a raw tarball instead.
 		
 The package includes all files in the directory and generates a SHA256 checksum.
-This command creates packages locally without publishing to the registry.
+For .itpkg, an HMAC-SHA256 signature is added (provide --sign-secret or set --unsigned).
 
 Examples:
   intent package examples/hello.itml
   intent package examples/hello.itml --out dist/
+  intent package . --format tar.gz --out ./packages
   intent package . --out ./packages`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -78,18 +85,30 @@ Examples:
 				return fmt.Errorf("failed to create output directory: %w", err)
 			}
 
-			// Generate package filename
-			packageFilename := fmt.Sprintf("%s.tar.gz", packageName)
+            // Generate package filename
+            var packageFilename string
+            switch format {
+            case "", "itpkg":
+                packageFilename = fmt.Sprintf("%s.itpkg", packageName)
+            case "tar.gz":
+                packageFilename = fmt.Sprintf("%s.tar.gz", packageName)
+            default:
+                return fmt.Errorf("unknown format: %s", format)
+            }
 			packagePath := filepath.Join(outDirAbs, packageFilename)
 
-			// Create the package
-			tarball, sha, err := pack.TarGzToPath(packageDir, packagePath)
-			if err != nil {
-				return fmt.Errorf("failed to create package: %w", err)
-			}
-
-			fmt.Println("  →", tarball)
-			fmt.Println("  sha256:", sha)
+            // Create the package
+            if format == "tar.gz" {
+                tarball, sha, err := pack.TarGzToPath(packageDir, packagePath)
+                if err != nil { return fmt.Errorf("failed to create package: %w", err) }
+                fmt.Println("  →", tarball)
+                fmt.Println("  sha256:", sha)
+            } else {
+                itpkg, sha, err := pack.CreateItpkg(packageDir, packagePath, signSecret, unsigned)
+                if err != nil { return fmt.Errorf("failed to create .itpkg: %w", err) }
+                fmt.Println("  →", itpkg)
+                fmt.Println("  payload sha256:", sha)
+            }
 			fmt.Println("✅ Package created successfully")
 
 			return nil
@@ -97,6 +116,16 @@ Examples:
 	}
 
 	c.Flags().StringVar(&outDir, "out", "", "Output directory for the package (default: current directory)")
+    c.Flags().StringVar(&format, "format", "itpkg", "Package format: itpkg (default) or tar.gz")
+    c.Flags().BoolVar(&unsigned, "unsigned", false, "Allow creating unsigned .itpkg (no sign-secret provided)")
+    c.Flags().StringVar(&signSecret, "sign-secret", "", "HMAC signing secret for .itpkg (defaults to env INTENT_SIGN_SECRET)")
+
+    // Default sign secret from env if not set via flag
+    c.PreRun = func(cmd *cobra.Command, args []string) {
+        if signSecret == "" {
+            signSecret = os.Getenv("INTENT_SIGN_SECRET")
+        }
+    }
 
 	return c
 }

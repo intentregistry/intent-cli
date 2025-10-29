@@ -3,6 +3,7 @@ package pack
 import (
 	"archive/tar"
 	"compress/gzip"
+	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -149,6 +150,79 @@ func TarGz(srcDir string) (tarPath, sha string, err error) {
 	if _, err := io.Copy(h, f); err != nil { return "", "", err }
 	sum := hex.EncodeToString(h.Sum(nil))
 	return tmp, sum, nil
+}
+
+// CreateItpkg creates a signed .itpkg package (tar.gz container of metadata + payload)
+// Contents:
+// - payload.tar.gz: the packaged directory
+// - sha256.txt: hex sha256 of payload
+// - signature.txt: HMAC-SHA256 over payload using provided secret
+// If secret is empty and unsignedAllowed is true, signature.txt contains "UNSIGNED".
+func CreateItpkg(srcDir, outputPath, hmacSecret string, unsignedAllowed bool) (string, string, error) {
+    // First, build the payload tar.gz in memory temp
+    payloadPath, sha, err := TarGz(srcDir)
+    if err != nil { return "", "", err }
+    defer os.Remove(payloadPath)
+
+    outFile, err := os.Create(outputPath)
+    if err != nil { return "", "", err }
+    defer func() {
+        _ = outFile.Close()
+    }()
+
+    gz := gzip.NewWriter(outFile)
+    defer gz.Close()
+    tw := tar.NewWriter(gz)
+    defer tw.Close()
+
+    // Add payload.tar.gz
+    if err := addFileToTar(tw, payloadPath, "payload.tar.gz"); err != nil { return "", "", err }
+
+    // Add sha256.txt
+    shaBytes := []byte(sha)
+    if err := addBytesToTar(tw, shaBytes, 0644, "sha256.txt"); err != nil { return "", "", err }
+
+    // Compute signature
+    var sig []byte
+    if hmacSecret != "" {
+        h := hmac.New(sha256.New, []byte(hmacSecret))
+        f, err := os.Open(payloadPath)
+        if err != nil { return "", "", err }
+        if _, err := io.Copy(h, f); err != nil { f.Close(); return "", "", err }
+        _ = f.Close()
+        sig = h.Sum(nil)
+    } else if unsignedAllowed {
+        sig = []byte("UNSIGNED")
+    } else {
+        return "", "", errors.New("signing secret not provided; use --unsigned to allow unsigned package")
+    }
+    if err := addBytesToTar(tw, []byte(hex.EncodeToString(sig)), 0644, "signature.txt"); err != nil { return "", "", err }
+
+    if err := tw.Flush(); err != nil { return "", "", err }
+    if err := gz.Flush(); err != nil { return "", "", err }
+
+    return outputPath, sha, nil
+}
+
+func addFileToTar(tw *tar.Writer, path string, name string) error {
+    fi, err := os.Stat(path)
+    if err != nil { return err }
+    hdr, err := tar.FileInfoHeader(fi, "")
+    if err != nil { return err }
+    hdr.Name = name
+    if err := tw.WriteHeader(hdr); err != nil { return err }
+    f, err := os.Open(path)
+    if err != nil { return err }
+    defer f.Close()
+    _, err = io.Copy(tw, f)
+    return err
+}
+
+func addBytesToTar(tw *tar.Writer, b []byte, mode os.FileMode, name string) error {
+    hdr := &tar.Header{ Name: name, Mode: int64(mode), Size: int64(len(b)) }
+    if err := tw.WriteHeader(hdr); err != nil { return err }
+    _, err := tw.Write(b)
+    return err
 }
 
 // UntarGz extracts a .tar.gz archive into destDir, preserving file modes.
