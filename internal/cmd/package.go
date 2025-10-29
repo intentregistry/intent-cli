@@ -83,7 +83,7 @@ Examples:
 					}
 					fmt.Println("✅ Created itpkg.json")
 				} else {
-					return fmt.Errorf("itpkg.json not found in %s (use --scaffold to generate)", packageDir)
+					return fmt.Errorf("itpkg.json not found in %s\n\nTo generate it automatically, use:\n  intent package . --scaffold --unsigned\n\nOr create itpkg.json manually with name, version, itmlVersion, and policies.", packageDir)
 				}
 			} else if scaffold {
 				// Even if manifest exists, ensure required directories exist when scaffold flag is set
@@ -231,9 +231,19 @@ func scaffoldItpkgJSON(dir, name string) error {
 
 // loadEd25519Key loads an ed25519 private key from a file (hex or PEM format)
 func loadEd25519Key(path string) (ed25519.PrivateKey, error) {
+	// Expand ~ and environment variables in path
+	if strings.HasPrefix(path, "~/") {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get home directory: %w", err)
+		}
+		path = filepath.Join(homeDir, path[2:])
+	}
+	path = os.ExpandEnv(path) // Expand $VAR and ${VAR}
+	
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read key file %s: %w", path, err)
 	}
 
 	// Try hex format first (64 bytes = 128 hex chars)
