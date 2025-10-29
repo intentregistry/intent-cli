@@ -89,7 +89,7 @@ Examples:
 			}
 
 			// Determine package name
-			pkgName := projectName
+			var pkgName string
 			if scope != "" {
 				scope = strings.TrimPrefix(scope, "@")
 				pkgName = fmt.Sprintf("@%s/%s", scope, projectName)
