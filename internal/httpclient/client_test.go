@@ -25,10 +25,10 @@ func TestClient_Get(t *testing.T) {
 		}
 		
 		// Check telemetry header if enabled
-		telemetry := r.Header.Get("X-Telemetry-Enabled")
-		if telemetry == "true" {
-			// Telemetry is enabled
-		}
+        telemetry := r.Header.Get("X-Telemetry-Enabled")
+        if telemetry == "true" {
+            t.Log("telemetry enabled")
+        }
 		
 		// Return test response
 		response := map[string]interface{}{
@@ -36,8 +36,10 @@ func TestClient_Get(t *testing.T) {
 			"data":   "test response",
 		}
 		
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+        w.Header().Set("Content-Type", "application/json")
+        if err := json.NewEncoder(w).Encode(response); err != nil {
+            t.Fatalf("encode response: %v", err)
+        }
 	}))
 	defer server.Close()
 	
@@ -124,8 +126,10 @@ func TestClient_PostMultipart(t *testing.T) {
 			"file":   "test.tar.gz",
 		}
 		
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+        w.Header().Set("Content-Type", "application/json")
+        if err := json.NewEncoder(w).Encode(response); err != nil {
+            t.Fatalf("encode response: %v", err)
+        }
 	}))
 	defer server.Close()
 	
@@ -174,8 +178,10 @@ func TestClient_RetryLogic(t *testing.T) {
 			"status": "success after retry",
 		}
 		
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+        w.Header().Set("Content-Type", "application/json")
+        if err := json.NewEncoder(w).Encode(response); err != nil {
+            t.Fatalf("encode response: %v", err)
+        }
 	}))
 	defer server.Close()
 	
@@ -214,7 +220,9 @@ func TestClient_ErrorHandling(t *testing.T) {
 			server: func() *httptest.Server {
 				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(http.StatusNotFound)
-					w.Write([]byte("Not found"))
+                    if _, err := w.Write([]byte("Not found")); err != nil {
+                        t.Fatalf("write response: %v", err)
+                    }
 				}))
 			},
 			wantError: true,

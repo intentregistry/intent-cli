@@ -452,11 +452,11 @@ func outputJSON(results *TestResults, outputDir string) error {
 		return err
 	}
 	
-	if outputDir != "" {
-		os.MkdirAll(outputDir, 0755)
-		outputFile := filepath.Join(outputDir, "test-results.json")
-		return os.WriteFile(outputFile, jsonData, 0644)
-	}
+    if outputDir != "" {
+        if err := os.MkdirAll(outputDir, 0755); err != nil { return err }
+        outputFile := filepath.Join(outputDir, "test-results.json")
+        return os.WriteFile(outputFile, jsonData, 0644)
+    }
 	
 	fmt.Println(string(jsonData))
 	return nil
@@ -479,11 +479,11 @@ func outputJUnit(results *TestResults, outputDir string) error {
 	
 	xml += `</testsuite>`
 	
-	if outputDir != "" {
-		os.MkdirAll(outputDir, 0755)
-		outputFile := filepath.Join(outputDir, "junit.xml")
-		return os.WriteFile(outputFile, []byte(xml), 0644)
-	}
+    if outputDir != "" {
+        if err := os.MkdirAll(outputDir, 0755); err != nil { return err }
+        outputFile := filepath.Join(outputDir, "junit.xml")
+        return os.WriteFile(outputFile, []byte(xml), 0644)
+    }
 	
 	fmt.Println(xml)
 	return nil
@@ -491,9 +491,9 @@ func outputJUnit(results *TestResults, outputDir string) error {
 
 // outputText outputs results in human-readable text format
 func outputText(results *TestResults, outputDir string) error {
-	if outputDir != "" {
-		os.MkdirAll(outputDir, 0755)
-		outputFile := filepath.Join(outputDir, "test-results.txt")
+    if outputDir != "" {
+        if err := os.MkdirAll(outputDir, 0755); err != nil { return err }
+        outputFile := filepath.Join(outputDir, "test-results.txt")
 		
 		var content strings.Builder
 		for _, result := range results.Results {

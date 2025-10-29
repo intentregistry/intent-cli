@@ -82,8 +82,8 @@ func TestInstallCommand_Success(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "intent-install-*")
 	if err != nil { t.Fatalf("tempdir: %v", err) }
 	defer os.RemoveAll(tmpDir)
-	cwd, _ := os.Getwd()
-	defer os.Chdir(cwd)
+    cwd, _ := os.Getwd()
+    defer func() { _ = os.Chdir(cwd) }()
 	_ = os.Chdir(tmpDir)
 
 	// Point CLI to test server
@@ -137,8 +137,8 @@ func TestInstallCommand_ChecksumMismatch(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "intent-install-*")
 	if err != nil { t.Fatalf("tempdir: %v", err) }
 	defer os.RemoveAll(tmpDir)
-	cwd, _ := os.Getwd()
-	defer os.Chdir(cwd)
+    cwd, _ := os.Getwd()
+    defer func() { _ = os.Chdir(cwd) }()
 	_ = os.Chdir(tmpDir)
 
 	apiURLFlag = server.URL

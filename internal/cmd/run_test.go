@@ -9,9 +9,9 @@ func TestRunCommand_Integration(t *testing.T) {
 	// Test that run command can be created and has expected flags
 	cmd := RunCmd()
 	
-	if cmd == nil {
-		t.Error("RunCmd() returned nil")
-	}
+    if cmd == nil {
+        t.Fatal("RunCmd() returned nil")
+    }
 	
 	// Test that expected flags exist
 	if cmd.Flags().Lookup("inputs") == nil {
@@ -45,7 +45,7 @@ func TestRunCommand_FileValidation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
-	defer os.Chdir(originalDir)
+    defer func() { _ = os.Chdir(originalDir) }()
 	
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("Failed to change directory: %v", err)

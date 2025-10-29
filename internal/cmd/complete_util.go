@@ -19,11 +19,4 @@ func applyNoFileCompletion(c *cobra.Command) {
 }
 
 // helper to fetch a subcommand by name (optional).
-func getCmd(name string) *cobra.Command {
-	for _, c := range root.Commands() {
-		if c.Name() == name {
-			return c
-		}
-	}
-	return nil
-}
+// getCmd was unused; remove to satisfy linters.

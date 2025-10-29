@@ -9,9 +9,9 @@ func TestSearchCommand_Integration(t *testing.T) {
 	// Test that search command can be created and has expected flags
 	cmd := SearchCmd()
 	
-	if cmd == nil {
-		t.Error("SearchCmd() returned nil")
-	}
+    if cmd == nil {
+        t.Fatal("SearchCmd() returned nil")
+    }
 	
 	// Test that JSON flag exists
 	if cmd.Flags().Lookup("json") == nil {
@@ -37,7 +37,7 @@ func TestInitCommand_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
-	defer os.Chdir(originalDir)
+    defer func() { _ = os.Chdir(originalDir) }()
 	
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("Failed to change directory: %v", err)
@@ -99,9 +99,9 @@ func TestDoctorCommand_Integration(t *testing.T) {
 	// Test that doctor command can be created and has expected flags
 	cmd := DoctorCmd()
 	
-	if cmd == nil {
-		t.Error("DoctorCmd() returned nil")
-	}
+    if cmd == nil {
+        t.Fatal("DoctorCmd() returned nil")
+    }
 	
 	// Test that verbose flag exists
 	if cmd.Flags().Lookup("verbose") == nil {
