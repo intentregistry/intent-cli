@@ -38,13 +38,20 @@ func TarGzToPath(srcDir, outputPath string) (tarPath, sha string, err error) {
 		}
 	}()
 
-	err = filepath.Walk(srcDir, func(path string, info os.FileInfo, err error) error {
+    err = filepath.Walk(srcDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if info.IsDir() {
 			return nil
 		}
+        // Skip the archive file being written if output is inside srcDir
+        // to avoid including it and causing write-too-long errors.
+        absPath, _ := filepath.Abs(path)
+        absOut, _ := filepath.Abs(outputPath)
+        if absPath == absOut {
+            return nil
+        }
 		rel, _ := filepath.Rel(srcDir, path)
 		hdr, err := tar.FileInfoHeader(info, "")
 		if err != nil {
