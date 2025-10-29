@@ -30,13 +30,14 @@ func LoginCmd() *cobra.Command {
 				}
 			}
 			
-			// Prompt for token
+			// Prompt for token (optional for local dev)
 			var token string
-			fmt.Print("Enter API token: ")
+			fmt.Print("Enter API token (optional, press Enter to skip): ")
 			_, err := fmt.Scanln(&token)
-			if err != nil {
+			if err != nil && err.Error() != "unexpected newline" {
 				return err
 			}
+			// Empty token is OK for local development
 			
 			// Save both token and api_url
 			if err := config.SaveConfig(cfg.APIURL, token); err != nil {

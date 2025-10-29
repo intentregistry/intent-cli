@@ -98,13 +98,14 @@ Examples:
 				cfg.APIURL = apiURLFlag
 			}
 
-			// Check authentication before attempting to publish
-			if cfg.Token == "" {
-				return fmt.Errorf("authentication required\n\nTo publish packages, you need to authenticate:\n  1. Run: intent login\n  2. Enter your API token\n  3. Then try publishing again\n\nOr set INTENT_TOKEN environment variable")
-			}
-
 			if cfg.APIURL == "" {
 				return fmt.Errorf("API URL not configured\n\nSet INTENT_API_URL environment variable or run 'intent login'")
+			}
+
+			// Warn if no token (but allow for local dev)
+			if cfg.Token == "" {
+				fmt.Println("⚠️  Warning: No authentication token configured")
+				fmt.Println("   Publishing without authentication (may fail if API requires auth)")
 			}
 
 			cl := httpclient.NewWithDebug(cfg, Debug())
@@ -119,7 +120,7 @@ Examples:
 			fmt.Printf("📤 Publishing to: %s\n", cfg.APIURL)
 			// POST multipart: file + payload
 			if err := cl.PostMultipart("/v1/packages/publish", payload, "file", tarball, nil); err != nil {
-				return fmt.Errorf("failed to publish: %w\n\nMake sure:\n  - You're authenticated (run 'intent login')\n  - The API endpoint is correct (set --api-url or INTENT_API_URL)\n  - Your token has publish permissions", err)
+				return fmt.Errorf("failed to publish: %w\n\nMake sure:\n  - The API endpoint is correct (set --api-url or INTENT_API_URL)\n  - If authentication is required, run 'intent login' or set INTENT_TOKEN", err)
 			}
 			fmt.Println("✅ Published successfully")
 			return nil
