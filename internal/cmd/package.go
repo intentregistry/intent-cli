@@ -85,6 +85,18 @@ Examples:
 				} else {
 					return fmt.Errorf("itpkg.json not found in %s (use --scaffold to generate)", packageDir)
 				}
+			} else if scaffold {
+				// Even if manifest exists, ensure required directories exist when scaffold flag is set
+				requiredDirs := []string{"intents", "policies"}
+				for _, dirName := range requiredDirs {
+					dirPath := filepath.Join(packageDir, dirName)
+					if _, err := os.Stat(dirPath); os.IsNotExist(err) {
+						if err := os.MkdirAll(dirPath, 0755); err != nil {
+							return fmt.Errorf("failed to create directory %s: %w", dirName, err)
+						}
+						fmt.Printf("📁 Created directory: %s/\n", dirName)
+					}
+				}
 			}
 
 			fmt.Println("📦 Packing:", packageDir)
