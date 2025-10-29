@@ -42,6 +42,11 @@ type ExecutionContext struct {
 
 // executeScriptIntent executes an intent with a custom script
 func executeScriptIntent(ctx *ExecutionContext) (ExecuteResult, error) {
+	// Check if this is a workflow script (contains →)
+	if strings.Contains(ctx.Intent.Script, "→") {
+		return executeWorkflowScript(ctx)
+	}
+	
 	// For now, we'll implement a simple script execution
 	// In a real implementation, you might support JavaScript, Python, or other languages
 	
@@ -56,6 +61,92 @@ func executeScriptIntent(ctx *ExecutionContext) (ExecuteResult, error) {
 	
 	// Default to simple template execution
 	return executeTemplate(script, ctx)
+}
+
+// executeWorkflowScript executes a workflow script with → commands
+func executeWorkflowScript(ctx *ExecutionContext) (ExecuteResult, error) {
+	lines := strings.Split(ctx.Intent.Script, "\n")
+	results := make(ExecuteResult)
+	
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		
+		// Remove → prefix if present (handle different arrow characters)
+		if strings.HasPrefix(line, "→ ") {
+			line = line[2:]
+		} else if strings.HasPrefix(line, "→") {
+			line = line[1:]
+		}
+		
+		// Parse workflow commands
+		if strings.HasPrefix(line, "log(") && strings.HasSuffix(line, ")") {
+			// Extract message from log("message")
+			message := line[4:len(line)-1] // Remove "log(" and ")"
+			message = strings.Trim(message, `"`) // Remove quotes
+			// Process template in message
+			processedMessage := processTemplate(message, ctx)
+			results["result"] = processedMessage
+		} else if strings.HasPrefix(line, "return(") && strings.HasSuffix(line, ")") {
+			// Extract return values from return(key="value")
+			returnPart := line[7:len(line)-1] // Remove "return(" and ")"
+			// Simple parsing for now - just set status
+			if strings.Contains(returnPart, "status=") {
+				statusStart := strings.Index(returnPart, "status=")
+				statusValue := returnPart[statusStart+7:]
+				statusValue = strings.Trim(statusValue, `"`)
+				results["status"] = statusValue
+			}
+		}
+	}
+	
+	// Ensure we have at least a status
+	if results["status"] == nil {
+		results["status"] = "success"
+	}
+	
+	return results, nil
+}
+
+// processTemplate processes template variables in a string
+func processTemplate(template string, ctx *ExecutionContext) string {
+	result := template
+	
+	// Create a map of all parameter values (inputs + defaults)
+	paramValues := make(map[string]string)
+	
+	// First, add default values from intent definition
+	for _, param := range ctx.Intent.Parameters {
+		if param.Default != nil {
+			// Convert default value to string
+			if defaultStr, ok := param.Default.(string); ok {
+				paramValues[param.Name] = defaultStr
+			} else {
+				// Convert other types to string
+				paramValues[param.Name] = fmt.Sprintf("%v", param.Default)
+			}
+		}
+	}
+	
+	// Then, override with provided input values
+	for key, value := range ctx.Inputs {
+		paramValues[key] = value
+	}
+	
+	// Replace parameter placeholders (support both {{name}} and {name} syntax)
+	for key, value := range paramValues {
+		// Support {{name}} syntax
+		placeholder := fmt.Sprintf("{{%s}}", key)
+		result = strings.ReplaceAll(result, placeholder, value)
+		
+		// Support {name} syntax
+		placeholder = fmt.Sprintf("{%s}", key)
+		result = strings.ReplaceAll(result, placeholder, value)
+	}
+	
+	return result
 }
 
 // executeDefaultIntent executes an intent without a custom script
@@ -134,9 +225,14 @@ func executeTemplate(template string, ctx *ExecutionContext) (ExecuteResult, err
 		paramValues[key] = value
 	}
 	
-	// Replace parameter placeholders
+	// Replace parameter placeholders (support both {{name}} and {name} syntax)
 	for key, value := range paramValues {
+		// Support {{name}} syntax
 		placeholder := fmt.Sprintf("{{%s}}", key)
+		result = strings.ReplaceAll(result, placeholder, value)
+		
+		// Support {name} syntax
+		placeholder = fmt.Sprintf("{%s}", key)
 		result = strings.ReplaceAll(result, placeholder, value)
 	}
 	

@@ -20,14 +20,18 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
 **Status: COMPLETED**
 - **Implementation**: `internal/cmd/run.go` + `internal/parser/itml.go` + `internal/executor/engine.go`
 - **Features**:
-  - Parse `.itml` files in JSON format
+  - **Custom ITML DSL Format**: Primary format with `intent "name"`, `inputs:`, `workflow:` syntax
+  - **Multi-format Support**: ITML (primary), JSON (fallback), YAML (fallback)
+  - **Workflow Execution**: Support for `→ log("message")` and `→ return(status="ok")` commands
+  - **Template Processing**: Both `{name}` and `{{name}}` syntax support
+  - **Parameter Parsing**: `name (type) default="value"` syntax with type validation
   - Handle `--inputs k=v` parameter passing with validation
   - Execute intent logic with template processing
   - Support `--output-dir` for saving results
   - Comprehensive error handling and validation
   - Verbose mode for debugging
   - Parameter type conversion and validation
-  - Template-based script execution
+  - Default parameter value support
 
 ### ✅ `intent package [--out dist/]`
 **Status: COMPLETED** (via `publish` command)
@@ -110,6 +114,21 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
 - **Implementation**: `internal/cmd/completion.go`
 - **Features**: Shell completion for bash, zsh, fish, and PowerShell
 
+## Recent Improvements (v0.3.1+)
+
+### ✅ Enhanced ITML Format Support
+- **Custom DSL Parser**: Implemented primary ITML format with domain-specific syntax
+- **Multi-format Fallback**: Automatic fallback to JSON/YAML if ITML parsing fails
+- **Workflow Commands**: Support for `→ log()` and `→ return()` workflow syntax
+- **Template Variables**: Dual support for `{name}` and `{{name}}` placeholder syntax
+- **Parameter Definition**: Enhanced parsing of `name (type) default="value"` syntax
+- **Default Value Processing**: Improved template processing with parameter defaults
+
+### ✅ YAML Support
+- **YAML Parser**: Added `gopkg.in/yaml.v3` dependency for YAML file support
+- **Struct Tags**: Added YAML tags to all parser structs for seamless YAML parsing
+- **Format Detection**: Automatic detection and parsing of YAML format files
+
 ## Technical Architecture
 
 ### Configuration Management
@@ -154,9 +173,9 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
 5. **Add CI/CD integration**: GitHub Actions workflows for automated testing
 
 ## Current Version
-- **Version**: 0.2.3-SNAPSHOT-395d52c
-- **Commit**: 395d52c885b7a14c75e402e730ae9b3eaf09525d
-- **Date**: 2025-10-18T14:39:03.289766+02:00
+- **Version**: 0.3.1
+- **Commit**: c62fbb75bf8c650d7a7b8b544046f8b50aa66266
+- **Date**: 2025-10-28T16:32:08Z
 
 ---
 *Generated on: $(date)*
