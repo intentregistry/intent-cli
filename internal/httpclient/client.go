@@ -51,11 +51,11 @@ func NewWithOptions(cfg config.Config, debug bool, telemetry bool) *Client {
 
 	// Add retry condition with logging
 	r.AddRetryCondition(func(resp *resty.Response, err error) bool {
-		shouldRetry := err != nil || resp.StatusCode() >= 500
+		shouldRetry := err != nil || (resp != nil && resp.StatusCode() >= 500)
 		if shouldRetry && debug {
 			if err != nil {
 				fmt.Printf("[DEBUG] retry due to error: %v\n", err)
-			} else {
+			} else if resp != nil {
 				fmt.Printf("[DEBUG] retry due to status %d\n", resp.StatusCode())
 			}
 		}
