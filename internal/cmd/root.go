@@ -50,8 +50,8 @@ func init() {
 	// Disable file fallback for all commands by default
 	applyNoFileCompletion(root)
 
-	// If you WANT file completion for a specific command, re-enable it here:
-	// if pc := getCmd("publish"); pc != nil { pc.ValidArgsFunction = nil }
+	// Note: publish and run commands override this with their own ValidArgsFunction
+	// to enable file completion for .itpkg and .itml files respectively
 }
 
 func RootCmd() *cobra.Command { return root }

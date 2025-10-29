@@ -30,6 +30,10 @@ Examples:
   intent run my-intent.itml --inputs name=John --inputs age=30
   intent run my-intent.itml --inputs query="search for cats" --output-dir ./results`,
 		Args: cobra.ExactArgs(1),
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			// Enable file completion for .itml files
+			return nil, cobra.ShellCompDirectiveDefault
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			itmlFile := args[0]
 			
