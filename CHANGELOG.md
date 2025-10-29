@@ -7,6 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.7] - 2025-10-29
+
+### Fixed
+- Fixed scaffold command to create required directories even if `itpkg.json` already exists
+- Improved directory structure validation error messages
+
+## [0.3.6] - 2025-10-29
+
+### Fixed
+- Fixed linter errors in test files (os.Chdir error checks)
+
+## [0.3.5] - 2025-10-29
+
+### Added
+- **Standalone `intent package` command**: Creates signed `.itpkg` archives independently
+- **.itpkg format v0.1**: Flat tar.gz structure with `itpkg.json`, `MANIFEST.sha256`, and `SIGNATURE`
+- **ed25519 signing**: Cryptographic signature over MANIFEST.sha256 for package integrity
+- **Required manifest**: `itpkg.json` with name, version, entry, policies, capabilities
+- **Structure validation**: Validates required directories (`intents/`, `policies/`) and recommended ones
+- **Scaffold support**: `--scaffold` flag generates `itpkg.json` and required directories
+- **Signing options**: Support for `--sign-key`, `INTENT_SIGN_KEY` env var, or `--unsigned` flag
+- **Package types**: Support for both `app` (with entry) and `lib` (without entry) packages
+- **Policy validation**: Enforces `policies.security.network` for app packages
+- **Key generation script**: `gen_intent_key.sh` for creating ed25519 signing keys
+
+### Changed
+- Package command now defaults to `.itpkg` format (removed tar.gz option)
+- Package structure changed from nested `payload.tar.gz` to flat tar.gz archive
+- Signing changed from HMAC-SHA256 to ed25519 for non-repudiation
+
+### Fixed
+- Fixed packaging to skip output archive file when packaging into source directory
+
+## [0.3.4] - 2025-10-29
+
+### Fixed
+- Fixed packaging to prevent self-inclusion when output directory is inside source directory
+
+## [0.3.3] - 2025-10-29
+
+### Added
+- Standalone `package` command with custom output path support
+
+## [0.3.2] - 2025-10-28
+
+### Added
+- Custom ITML DSL format parser (primary format)
+- Multi-format support: ITML (primary), JSON (fallback), YAML (fallback)
+- Workflow execution: `→ log()` and `→ return()` commands
+- Dual template syntax: `{name}` and `{{name}}` support
+- Enhanced parameter parsing: `name (type) default="value"` syntax
+- Default parameter value support in template processing
+
+### Fixed
+- Fixed template processing to use default parameter values when not provided
+
+## [0.3.1] - 2025-10-28
+
+### Added
+- YAML parsing support using `gopkg.in/yaml.v3`
+- YAML struct tags for all parser structures
+
 ## [0.3.0] - 2025-10-18
 
 ### Added

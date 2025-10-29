@@ -16,11 +16,31 @@ intent --help
 ## Usage
 
 ```bash
+# Authentication
 intent login
+
+# Package creation (creates signed .itpkg archives)
+intent package [path] --scaffold --unsigned  # Development/testing
+intent package [path] --sign-key ~/.ssh/intent_key  # Production signing
+
+# Publishing
 intent publish [path] --private --tag beta --message "first release"
+
+# Installation
 intent install @scope/name[@version] --dest intents
+
+# Execution
+intent run FILE.itml --inputs name=World
+
+# Discovery
 intent search "vector embeddings"
+
+# Testing
+intent test [path] --format json
+
+# Utilities
 intent whoami
+intent doctor
 ```
 
 ## Configuration
@@ -33,6 +53,7 @@ You can also set environment variables:
 
 - `INTENT_API_URL` (default: `https://api.intentregistry.com`)
 - `INTENT_TOKEN`
+- `INTENT_SIGN_KEY` (path to ed25519 private key for package signing)
 
 ## Shell completion
 
@@ -99,6 +120,31 @@ Add-Content $PROFILE "`n. $OutPath"
 > intent completion zsh | head
 > ```
 
+## Package Format (.itpkg)
+
+The `.itpkg` format is a signed, versioned Intent package container:
+
+- **Structure**: Flat tar.gz archive with `itpkg.json`, `MANIFEST.sha256`, `SIGNATURE`, and project files
+- **Signing**: ed25519 signature over MANIFEST.sha256 for integrity verification
+- **Manifest**: Required `itpkg.json` with name, version, policies, and capabilities
+- **Validation**: Directory structure validation (requires `intents/` and `policies/` directories)
+
+### Quick Start
+
+```bash
+# Generate signing key (one-time setup)
+./gen_intent_key.sh  # Creates private_key.hex and public_key.hex
+
+# Package with scaffold (creates itpkg.json and required directories)
+intent package . --scaffold --unsigned
+
+# Package with signing
+export INTENT_SIGN_KEY=~/.ssh/private_key.hex
+intent package . --out dist/
+```
+
+See [docs/itpkg_definition.md](docs/itpkg_definition.md) for complete specification.
+
 ## Development
 
 To build locally:
@@ -129,7 +175,9 @@ Dev builds will show version as `dev+<commit-hash>` when you run `intent --versi
     ├─ internal/cmd/            # subcommands
     ├─ internal/config/         # configuration management
     ├─ internal/httpclient/     # API HTTP client
-    ├─ internal/pack/           # tar.gz packaging utilities
+    ├─ internal/pack/           # packaging utilities (.itpkg format + tar.gz)
+    ├─ internal/parser/         # ITML format parser (DSL, JSON, YAML)
+    ├─ internal/executor/       # intent execution engine
     ├─ internal/version/        # version and build metadata
     ├─ .goreleaser.yaml         # release automation
     ├─ go.mod                   # Go module

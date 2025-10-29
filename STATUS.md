@@ -34,13 +34,19 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
   - Default parameter value support
 
 ### ✅ `intent package [--out dist/]`
-**Status: COMPLETED** (via `publish` command)
-- **Implementation**: `internal/cmd/publish.go` + `internal/pack/tar.go`
+**Status: COMPLETED**
+- **Implementation**: `internal/cmd/package.go` + `internal/pack/itpkg.go` + `internal/pack/tar.go`
 - **Features**:
-  - Creates tar.gz packages with SHA256 checksums
-  - Uses `pack.TarGz()` function for packaging
-  - Automatic checksum generation
-  - Note: Functionality is embedded in `publish` command rather than standalone `package` command
+  - **Standalone command**: Creates `.itpkg` packages independently of `publish`
+  - **Flat archive structure**: tar.gz with files at root (no nested payload)
+  - **Required manifest**: `itpkg.json` with name, version, entry, policies, capabilities
+  - **MANIFEST.sha256**: File list with SHA256 checksums (sorted, deterministic)
+  - **ed25519 signing**: Cryptographic signature over MANIFEST.sha256
+  - **Structure validation**: Validates required directories (`intents/`, `policies/`)
+  - **Scaffold support**: `--scaffold` flag generates `itpkg.json` and required directories
+  - **Signing options**: `--sign-key`, `INTENT_SIGN_KEY` env var, or `--unsigned` flag
+  - **Package naming**: Outputs `{name}-{version}.itpkg` based on manifest
+  - **Validation levels**: ERROR (required), WARN (recommended), INFO (optional)
 
 ### ✅ `intent publish [--tag beta]`
 **Status: COMPLETED**
@@ -129,6 +135,17 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
 - **Struct Tags**: Added YAML tags to all parser structs for seamless YAML parsing
 - **Format Detection**: Automatic detection and parsing of YAML format files
 
+### ✅ .itpkg Package Format (v0.3.5+)
+- **Flat Archive Structure**: Single tar.gz with files at root (no nested payload.tar.gz)
+- **itpkg.json Manifest**: Required authoritative manifest with validation rules
+- **MANIFEST.sha256**: File list with SHA256 checksums (sorted, deterministic)
+- **ed25519 Signing**: Cryptographic signature over MANIFEST.sha256 content
+- **Directory Validation**: Required (`intents/`, `policies/`) and recommended (`tests/`, `schemas/`) structure validation
+- **Scaffold Support**: `--scaffold` flag auto-generates `itpkg.json` and required directories
+- **Signing Options**: Support for `--sign-key`, `INTENT_SIGN_KEY` env var, or `--unsigned` flag
+- **Package Types**: Support for both `app` (with entry) and `lib` (without entry) packages
+- **Policy Validation**: Enforces `policies.security.network` for app packages
+
 ## Technical Architecture
 
 ### Configuration Management
@@ -141,8 +158,12 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
 - **Features**: Debug mode, multipart uploads, authentication
 
 ### Packaging System
-- **Implementation**: `internal/pack/tar.go`
-- **Features**: Tar.gz creation with SHA256 checksums
+- **Implementation**: `internal/pack/itpkg.go` + `internal/pack/tar.go`
+- **Features**: 
+  - `.itpkg` format creation (flat tar.gz with manifest, checksums, signature)
+  - Tar.gz creation with SHA256 checksums
+  - Manifest validation and structure validation
+  - ed25519 signing and verification support
 
 ### Release Automation
 - **Tool**: GoReleaser
@@ -154,7 +175,7 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
 **Completed Checkpoints**: 7/7 (100%) 🎉
 - ✅ `intent login`
 - ✅ `intent run FILE.itml [--inputs k=v]`
-- ✅ `intent package` (via publish)
+- ✅ `intent package` (standalone command with .itpkg format)
 - ✅ `intent publish`
 - ✅ `intent install @scope/name[@version]`
 - ✅ `intent test [path]`
@@ -166,16 +187,17 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
 
 ## Recommendations
 
-1. **Consider standalone `intent package` command**: Currently embedded in publish command
-2. **Update config format**: Consider changing from YAML to JSON as originally specified
-3. **Add more test formats**: Support for YAML test files and custom test scripts
-4. **Enhance coverage reporting**: More sophisticated coverage analysis
-5. **Add CI/CD integration**: GitHub Actions workflows for automated testing
+1. ✅ **Standalone `intent package` command**: Implemented as separate command with full .itpkg format support
+2. **Add `intent verify` command**: Verify package signatures and integrity
+3. **Update config format**: Consider changing from YAML to JSON as originally specified
+4. **Add more test formats**: Support for YAML test files and custom test scripts
+5. **Enhance coverage reporting**: More sophisticated coverage analysis
+6. **Add CI/CD integration**: GitHub Actions workflows for automated testing
 
 ## Current Version
-- **Version**: 0.3.1
-- **Commit**: c62fbb75bf8c650d7a7b8b544046f8b50aa66266
-- **Date**: 2025-10-28T16:32:08Z
+- **Version**: 0.3.7
+- **Commit**: 04ddce1 (latest)
+- **Date**: 2025-10-29
 
 ---
 *Generated on: $(date)*
