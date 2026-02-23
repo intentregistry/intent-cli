@@ -84,7 +84,7 @@ Examples:
 					}
 					fmt.Println("✅ Created itpkg.json")
 				} else {
-					return fmt.Errorf("itpkg.json not found in %s\n\nTo generate it automatically, use:\n  intent package . --scaffold --unsigned\n\nOr create itpkg.json manually with name, version, itmlVersion, and policies.", packageDir)
+					return fmt.Errorf("itpkg.json not found in %s; use 'intent package . --scaffold --unsigned' or create itpkg.json manually with name, version, itmlVersion, and policies", packageDir)
 				}
 			} else if scaffold {
 				// Even if manifest exists, ensure required directories exist when scaffold flag is set

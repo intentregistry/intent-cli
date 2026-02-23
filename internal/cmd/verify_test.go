@@ -17,7 +17,7 @@ func TestVerifyCommand_SignedPackageWithPublicKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("tempdir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	projectDir := filepath.Join(tmpDir, "project")
 	if err := os.MkdirAll(filepath.Join(projectDir, "intents"), 0o755); err != nil {
@@ -82,7 +82,7 @@ func TestVerifyCommand_FailsWithWrongPublicKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("tempdir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	projectDir := filepath.Join(tmpDir, "project")
 	if err := os.MkdirAll(filepath.Join(projectDir, "intents"), 0o755); err != nil {

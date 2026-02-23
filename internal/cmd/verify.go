@@ -133,13 +133,13 @@ func readItpkgFiles(path string) (map[string][]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open package: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	gz, err := gzip.NewReader(f)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read gzip stream: %w", err)
 	}
-	defer gz.Close()
+	defer func() { _ = gz.Close() }()
 
 	tr := tar.NewReader(gz)
 	files := map[string][]byte{}

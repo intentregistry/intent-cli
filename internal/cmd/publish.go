@@ -17,12 +17,12 @@ import (
 
 func PublishCmd() *cobra.Command {
 	var (
-		path     string
+		path      string
 		isPrivate bool
-		tag      string
-		message  string
+		tag       string
+		message   string
 	)
-		c := &cobra.Command{
+	c := &cobra.Command{
 		Use:   "publish [path]",
 		Short: "Publish an intent package",
 		Long: `Publish an intent package to the registry.
@@ -74,7 +74,7 @@ Examples:
 				if err != nil {
 					return fmt.Errorf("failed to open package file: %w", err)
 				}
-				defer file.Close()
+				defer func() { _ = file.Close() }()
 
 				hasher := sha256.New()
 				if _, err := io.Copy(hasher, file); err != nil {

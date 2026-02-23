@@ -17,17 +17,17 @@ type ExecuteResult map[string]interface{}
 func Execute(intent *parser.Intent, inputParams map[string]string, outputDir string) (ExecuteResult, error) {
 	// Prepare execution context
 	context := &ExecutionContext{
-		Intent:     intent,
-		Inputs:     inputParams,
-		OutputDir:  outputDir,
-		Results:    make(ExecuteResult),
+		Intent:    intent,
+		Inputs:    inputParams,
+		OutputDir: outputDir,
+		Results:   make(ExecuteResult),
 	}
-	
+
 	// Execute based on intent type
 	if intent.Script != "" {
 		return executeScriptIntent(context)
 	}
-	
+
 	// Default execution for intents without scripts
 	return executeDefaultIntent(context)
 }
@@ -46,19 +46,19 @@ func executeScriptIntent(ctx *ExecutionContext) (ExecuteResult, error) {
 	if strings.Contains(ctx.Intent.Script, "→") {
 		return executeWorkflowScript(ctx)
 	}
-	
+
 	// For now, we'll implement a simple script execution
 	// In a real implementation, you might support JavaScript, Python, or other languages
-	
+
 	script := ctx.Intent.Script
 	if strings.HasPrefix(script, "javascript:") {
 		return executeJavaScript(script[11:], ctx)
 	}
-	
+
 	if strings.HasPrefix(script, "python:") {
 		return executePython(script[7:], ctx)
 	}
-	
+
 	// Default to simple template execution
 	return executeTemplate(script, ctx)
 }
@@ -67,31 +67,31 @@ func executeScriptIntent(ctx *ExecutionContext) (ExecuteResult, error) {
 func executeWorkflowScript(ctx *ExecutionContext) (ExecuteResult, error) {
 	lines := strings.Split(ctx.Intent.Script, "\n")
 	results := make(ExecuteResult)
-	
+
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
 		}
-		
+
 		// Remove → prefix if present (handle different arrow characters)
 		if strings.HasPrefix(line, "→ ") {
 			line = line[2:]
 		} else if strings.HasPrefix(line, "→") {
 			line = line[1:]
 		}
-		
+
 		// Parse workflow commands
 		if strings.HasPrefix(line, "log(") && strings.HasSuffix(line, ")") {
 			// Extract message from log("message")
-			message := line[4:len(line)-1] // Remove "log(" and ")"
+			message := line[4 : len(line)-1]     // Remove "log(" and ")"
 			message = strings.Trim(message, `"`) // Remove quotes
 			// Process template in message
 			processedMessage := processTemplate(message, ctx)
 			results["result"] = processedMessage
 		} else if strings.HasPrefix(line, "return(") && strings.HasSuffix(line, ")") {
 			// Extract return values from return(key="value")
-			returnPart := line[7:len(line)-1] // Remove "return(" and ")"
+			returnPart := line[7 : len(line)-1] // Remove "return(" and ")"
 			// Simple parsing for now - just set status
 			if strings.Contains(returnPart, "status=") {
 				statusStart := strings.Index(returnPart, "status=")
@@ -101,22 +101,22 @@ func executeWorkflowScript(ctx *ExecutionContext) (ExecuteResult, error) {
 			}
 		}
 	}
-	
+
 	// Ensure we have at least a status
 	if results["status"] == nil {
 		results["status"] = "success"
 	}
-	
+
 	return results, nil
 }
 
 // processTemplate processes template variables in a string
 func processTemplate(template string, ctx *ExecutionContext) string {
 	result := template
-	
+
 	// Create a map of all parameter values (inputs + defaults)
 	paramValues := make(map[string]string)
-	
+
 	// First, add default values from intent definition
 	for _, param := range ctx.Intent.Parameters {
 		if param.Default != nil {
@@ -129,23 +129,23 @@ func processTemplate(template string, ctx *ExecutionContext) string {
 			}
 		}
 	}
-	
+
 	// Then, override with provided input values
 	for key, value := range ctx.Inputs {
 		paramValues[key] = value
 	}
-	
+
 	// Replace parameter placeholders (support both {{name}} and {name} syntax)
 	for key, value := range paramValues {
 		// Support {{name}} syntax
 		placeholder := fmt.Sprintf("{{%s}}", key)
 		result = strings.ReplaceAll(result, placeholder, value)
-		
+
 		// Support {name} syntax
 		placeholder = fmt.Sprintf("{%s}", key)
 		result = strings.ReplaceAll(result, placeholder, value)
 	}
-	
+
 	return result
 }
 
@@ -153,7 +153,7 @@ func processTemplate(template string, ctx *ExecutionContext) string {
 func executeDefaultIntent(ctx *ExecutionContext) (ExecuteResult, error) {
 	// Simple execution that processes inputs and generates outputs
 	results := make(ExecuteResult)
-	
+
 	// Process each output
 	for _, output := range ctx.Intent.Outputs {
 		switch output.Name {
@@ -168,14 +168,14 @@ func executeDefaultIntent(ctx *ExecutionContext) (ExecuteResult, error) {
 			results[output.Name] = generateOutput(output, ctx)
 		}
 	}
-	
+
 	// Save results to output directory if specified
 	if ctx.OutputDir != "" {
 		if err := saveResults(results, ctx.OutputDir); err != nil {
 			return nil, fmt.Errorf("failed to save results: %w", err)
 		}
 	}
-	
+
 	return results, nil
 }
 
@@ -196,17 +196,17 @@ func executePython(code string, ctx *ExecutionContext) (ExecuteResult, error) {
 	return ExecuteResult{
 		"result": "Python execution not yet implemented",
 		"status": "error",
-	}, fmt.Errorf("Python execution not yet implemented")
+	}, fmt.Errorf("python execution not yet implemented")
 }
 
 // executeTemplate executes a simple template
 func executeTemplate(template string, ctx *ExecutionContext) (ExecuteResult, error) {
 	// Simple template replacement
 	result := template
-	
+
 	// Create a map of all parameter values (inputs + defaults)
 	paramValues := make(map[string]string)
-	
+
 	// First, add default values from intent definition
 	for _, param := range ctx.Intent.Parameters {
 		if param.Default != nil {
@@ -219,28 +219,28 @@ func executeTemplate(template string, ctx *ExecutionContext) (ExecuteResult, err
 			}
 		}
 	}
-	
+
 	// Then, override with provided input values
 	for key, value := range ctx.Inputs {
 		paramValues[key] = value
 	}
-	
+
 	// Replace parameter placeholders (support both {{name}} and {name} syntax)
 	for key, value := range paramValues {
 		// Support {{name}} syntax
 		placeholder := fmt.Sprintf("{{%s}}", key)
 		result = strings.ReplaceAll(result, placeholder, value)
-		
+
 		// Support {name} syntax
 		placeholder = fmt.Sprintf("{%s}", key)
 		result = strings.ReplaceAll(result, placeholder, value)
 	}
-	
+
 	// Replace intent metadata
 	result = strings.ReplaceAll(result, "{{name}}", ctx.Intent.Name)
 	result = strings.ReplaceAll(result, "{{description}}", ctx.Intent.Description)
 	result = strings.ReplaceAll(result, "{{version}}", ctx.Intent.Version)
-	
+
 	return ExecuteResult{
 		"result": result,
 		"status": "success",
@@ -252,12 +252,12 @@ func processDefaultResult(ctx *ExecutionContext) string {
 	if len(ctx.Inputs) == 0 {
 		return fmt.Sprintf("Intent '%s' executed with no inputs", ctx.Intent.Name)
 	}
-	
+
 	var parts []string
 	for key, value := range ctx.Inputs {
 		parts = append(parts, fmt.Sprintf("%s=%s", key, value))
 	}
-	
+
 	return fmt.Sprintf("Intent '%s' processed inputs: %s", ctx.Intent.Name, strings.Join(parts, ", "))
 }
 
@@ -289,18 +289,18 @@ func saveResults(results ExecuteResult, outputDir string) error {
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
-	
+
 	// Save results as JSON
 	resultsFile := filepath.Join(outputDir, "results.json")
 	jsonData, err := json.MarshalIndent(results, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal results: %w", err)
 	}
-	
+
 	if err := os.WriteFile(resultsFile, jsonData, 0644); err != nil {
 		return fmt.Errorf("failed to write results file: %w", err)
 	}
-	
+
 	// Save individual outputs if they're strings
 	for name, value := range results {
 		if str, ok := value.(string); ok && len(str) > 0 {
@@ -311,7 +311,7 @@ func saveResults(results ExecuteResult, outputDir string) error {
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -325,7 +325,7 @@ func ValidateInputs(intent *parser.Intent, inputParams map[string]string) error 
 			}
 		}
 	}
-	
+
 	// Validate parameter values
 	for name, value := range inputParams {
 		// Find parameter definition
@@ -336,17 +336,17 @@ func ValidateInputs(intent *parser.Intent, inputParams map[string]string) error 
 				break
 			}
 		}
-		
+
 		if param == nil {
 			return fmt.Errorf("unknown parameter '%s'", name)
 		}
-		
+
 		// Validate value
 		if err := validateParameterValue(value, param); err != nil {
 			return fmt.Errorf("invalid value for parameter '%s': %w", name, err)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -391,7 +391,7 @@ func validateParameterValue(value string, param *parser.Parameter) error {
 			return fmt.Errorf("invalid object format")
 		}
 	}
-	
+
 	// Check options if specified
 	if len(param.Validation.Options) > 0 {
 		found := false
@@ -405,6 +405,6 @@ func validateParameterValue(value string, param *parser.Parameter) error {
 			return fmt.Errorf("value must be one of: %s", strings.Join(param.Validation.Options, ", "))
 		}
 	}
-	
+
 	return nil
 }

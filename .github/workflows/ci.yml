@@ -13,9 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.23.x'
       
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
@@ -29,9 +29,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.23.x'
       
       - name: Run tests
         run: go test -v -race -coverprofile=coverage.out ./...
@@ -52,15 +52,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.23.x'
       
       - name: Build
         run: go build -v -o intent ./cmd/intent
       
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: intent-${{ matrix.os }}
           path: intent*
@@ -76,9 +76,9 @@ jobs:
         with:
           fetch-depth: 0
       
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.23.x'
       
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5

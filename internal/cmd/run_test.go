@@ -8,24 +8,25 @@ import (
 func TestRunCommand_Integration(t *testing.T) {
 	// Test that run command can be created and has expected flags
 	cmd := RunCmd()
-	
-    if cmd == nil {
-        t.Fatal("RunCmd() returned nil")
-    }
-	
+
+	if cmd == nil {
+		t.Fatal("RunCmd() returned nil")
+		return
+	}
+
 	// Test that expected flags exist
 	if cmd.Flags().Lookup("inputs") == nil {
 		t.Error("Expected 'inputs' flag not found in run command")
 	}
-	
+
 	if cmd.Flags().Lookup("output-dir") == nil {
 		t.Error("Expected 'output-dir' flag not found in run command")
 	}
-	
+
 	if cmd.Flags().Lookup("verbose") == nil {
 		t.Error("Expected 'verbose' flag not found in run command")
 	}
-	
+
 	// Test command usage
 	if cmd.Use != "run FILE.itml [--inputs k=v]" {
 		t.Errorf("Expected usage 'run FILE.itml [--inputs k=v]', got '%s'", cmd.Use)
@@ -38,19 +39,19 @@ func TestRunCommand_FileValidation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
-	
+	defer func() { _ = os.RemoveAll(tempDir) }()
+
 	// Change to temp directory
 	originalDir, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
-    defer func() { _ = os.Chdir(originalDir) }()
-	
+	defer func() { _ = os.Chdir(originalDir) }()
+
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("Failed to change directory: %v", err)
 	}
-	
+
 	tests := []struct {
 		name        string
 		args        []string
@@ -85,7 +86,7 @@ func TestRunCommand_FileValidation(t *testing.T) {
 			}`,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup file if needed
@@ -93,13 +94,13 @@ func TestRunCommand_FileValidation(t *testing.T) {
 				if err := os.WriteFile(tt.args[0], []byte(tt.fileContent), 0644); err != nil {
 					t.Fatalf("Failed to create test file: %v", err)
 				}
-				defer os.Remove(tt.args[0])
+				defer func() { _ = os.Remove(tt.args[0]) }()
 			}
-			
+
 			cmd := RunCmd()
 			cmd.SetArgs(tt.args)
 			err := cmd.Execute()
-			
+
 			if tt.expectError && err == nil {
 				t.Error("Expected error but got none")
 			}
