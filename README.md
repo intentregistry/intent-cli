@@ -41,6 +41,7 @@ intent test [path] --format json
 # Utilities
 intent whoami
 intent doctor
+intent verify dist/package.itpkg --public-key ./public_key.hex
 ```
 
 ## Configuration

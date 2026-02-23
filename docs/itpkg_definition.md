@@ -51,7 +51,7 @@ How it's produced & used (MVP flow):
 	1.	intent package [path] → builds the .itpkg, signs it with ed25519, validates structure and policies.
 	2.	intent publish @scope/pkg@version → uploads signed artifact to registry (validates itpkg.json, signature, policies).
 	3.	intent install @scope/name → resolves, verifies ed25519 signature, validates checksums, extracts into project.
-	4.	intent verify ./pkg.itpkg → verifies signature and integrity (supports --legacy-hmac for old artifacts).
+	4.	intent verify ./pkg.itpkg --public-key ./public_key.hex → verifies integrity and ed25519 signature.
 
 **CLI Commands:**
 ```bash
@@ -65,8 +65,8 @@ intent package . --sign-key ~/.ssh/intent_sign_key
 INTENT_SIGN_KEY=/path/to/key intent package .
 
 # Verify package integrity
-intent verify package.itpkg
-intent verify package.itpkg --legacy-hmac  # For old HMAC-signed packages
+intent verify package.itpkg --public-key ./public_key.hex
+intent verify package.itpkg --allow-unsigned  # Integrity-only check for unsigned artifacts
 ```
 
 ⸻
@@ -258,9 +258,9 @@ CLI Behaviors & Error Codes
 - Checks compatibility (itmlVersion)
 
 **intent verify ./pkg.itpkg**
-- Verifies ed25519 signature over MANIFEST.sha256
-- Validates all file checksums
-- Supports `--legacy-hmac` for old HMAC-signed artifacts (with deprecation warning)
+- Validates all file checksums from MANIFEST.sha256
+- Verifies ed25519 signature over MANIFEST.sha256 when `--public-key` is provided
+- Supports unsigned packages via `--allow-unsigned` (integrity only)
 
 **Exit Codes:**
 - `0` - Success
@@ -286,9 +286,8 @@ Migration Notes (v0.1)
 - ✅ Added: `--scaffold` flag for manifest generation
 
 **Backward Compatibility:**
-- Old HMAC-signed packages can be verified with `--legacy-hmac` flag
-- Support for legacy format will be maintained for 2 minor versions (e.g., 0.1 → 0.3)
-- New packages always use ed25519 signing
+- New packages use ed25519 signing
+- Unsigned packages are supported only for development/testing workflows
 
 ⸻
 

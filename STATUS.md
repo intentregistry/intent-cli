@@ -102,7 +102,7 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
 
 ### ✅ `intent init [name]`
 - **Implementation**: `internal/cmd/init.go`
-- **Features**: Project initialization with manifest.yaml creation
+- **Features**: Project initialization with `itpkg.json` scaffolding
 
 ### ✅ `intent search <query>`
 - **Implementation**: `internal/cmd/search.go`
@@ -228,7 +228,7 @@ All examples follow the ITML DSL format and include:
 3. ✅ **GitHub Actions CI/CD**: Automated linting, testing, building, and releasing
 4. ✅ **Comprehensive documentation**: USER_GUIDE.md and LOCAL_DEVELOPMENT.md (1150+ lines)
 5. ✅ **Production-ready examples**: 4 example intents covering common use cases
-6. **Add `intent verify` command**: Verify package signatures and integrity (planned)
+6. ✅ **Add `intent verify` command**: Verify package checksums and ed25519 signatures
 7. **Automation improvements**: Consider caching strategies and parallel builds (future)
 8. **Performance optimization**: Benchmark and optimize large package handling (future)
 

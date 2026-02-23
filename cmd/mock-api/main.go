@@ -19,10 +19,10 @@ type PackageRegistry struct {
 }
 
 type Package struct {
-	Name      string `json:"name"`
-	Version   string `json:"version"`
-	Tarball   string `json:"tarball"`
-	SHA256    string `json:"sha256"`
+	Name        string    `json:"name"`
+	Version     string    `json:"version"`
+	Tarball     string    `json:"tarball"`
+	SHA256      string    `json:"sha256"`
 	PublishedAt time.Time `json:"published_at"`
 }
 
@@ -266,9 +266,9 @@ func main() {
 
 	log.Printf("🚀 Mock IntentRegistry API starting on http://localhost:%s", port)
 	log.Printf("   Health: http://localhost:%s/health", port)
-	log.Printf("   Publish: POST /v1/packages/publish", port)
-	log.Printf("   Resolve: GET /v1/packages/resolve?spec=@scope/name[@version]", port)
-	log.Printf("   Search: GET /v1/packages/search?q=query", port)
+	log.Printf("   Publish: POST /v1/packages/publish")
+	log.Printf("   Resolve: GET /v1/packages/resolve?spec=@scope/name[@version]")
+	log.Printf("   Search: GET /v1/packages/search?q=query")
 
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal(err)

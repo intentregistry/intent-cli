@@ -204,7 +204,7 @@ sed -i 's/"0.1.0"/"0.1.1"/' itpkg.json
 ./intent package . --sign-key private_key.hex
 
 # Verify signature
-./intent verify dist/weather-app-0.1.0.itpkg
+./intent verify dist/weather-app-0.1.0.itpkg --public-key public_key.hex
 
 # Publish
 ./intent publish dist/weather-app-0.1.0.itpkg
@@ -318,7 +318,7 @@ export INTENT_API_URL=http://localhost:8081
 export INTENT_SIGN_KEY=./private_key.hex
 
 # Verify package
-./intent verify dist/package.itpkg
+./intent verify dist/package.itpkg --public-key public_key.hex
 ```
 
 ### Package Version Conflicts
@@ -404,4 +404,3 @@ time ./intent publish test/dist/test-0.1.0.itpkg
 - [ITML Format](../README.md#itml-format) - Intent language reference
 - [API Documentation](API.md) - Registry API endpoints
 - [Package Format](itpkg_definition.md) - .itpkg file specification
-

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added `intent verify` command to validate `.itpkg` checksums and optionally verify ed25519 signatures via `--public-key`
+
+### Fixed
+- Fixed `cmd/mock-api` build break caused by invalid `log.Printf` argument usage
+- Updated init integration tests and project init validation flow to match `itpkg.json`-based scaffolding
+
 ## [0.3.7] - 2025-10-29
 
 ### Fixed

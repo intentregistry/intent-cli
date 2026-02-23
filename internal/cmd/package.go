@@ -15,14 +15,14 @@ import (
 
 func PackageCmd() *cobra.Command {
 	var (
-		path       string
-		outDir     string
-		unsigned   bool
+		path        string
+		outDir      string
+		unsigned    bool
 		signKeyPath string
-		scaffold   bool
+		scaffold    bool
 	)
 
-		c := &cobra.Command{
+	c := &cobra.Command{
 		Use:   "package [path] [--out directory]",
 		Short: "Package an intent directory into a signed .itpkg archive",
 		Long: `Create a signed .itpkg package from an intent directory.
@@ -143,7 +143,7 @@ Examples:
 			if err != nil {
 				return fmt.Errorf("failed to read manifest: %w", err)
 			}
-			
+
 			// Use name from manifest if available, otherwise use directory name
 			pkgName := manifest.Name
 			if pkgName == "" {
@@ -195,10 +195,10 @@ func scaffoldItpkgJSON(dir, name string) error {
 	}
 
 	manifest := pack.ItpkgManifest{
-		Name:        fmt.Sprintf("@scope/%s", name),
-		Version:     "0.1.0",
-		Description: fmt.Sprintf("Intent package for %s", name),
-		ItmlVersion: "0.1",
+		Name:         fmt.Sprintf("@scope/%s", name),
+		Version:      "0.1.0",
+		Description:  fmt.Sprintf("Intent package for %s", name),
+		ItmlVersion:  "0.1",
 		Capabilities: []string{},
 		Policies: map[string]interface{}{
 			"security": map[string]interface{}{
@@ -236,24 +236,18 @@ func scaffoldItpkgJSON(dir, name string) error {
 	return os.WriteFile(manifestPath, manifestJSON, 0644)
 }
 
-// loadEd25519Key loads an ed25519 private key from a file (hex or PEM format)
+// loadEd25519Key loads an ed25519 private key from a hex file.
 func loadEd25519Key(path string) (ed25519.PrivateKey, error) {
-	// Expand ~ and environment variables in path
-	expandedPath := path
-	if strings.HasPrefix(path, "~/") {
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get home directory: %w", err)
-		}
-		expandedPath = filepath.Join(homeDir, path[2:])
+	expandedPath, err := expandKeyPath(path)
+	if err != nil {
+		return nil, err
 	}
-	expandedPath = os.ExpandEnv(expandedPath) // Expand $VAR and ${VAR}
-	
+
 	// Check if file exists before trying to read
 	if _, err := os.Stat(expandedPath); os.IsNotExist(err) {
 		return nil, fmt.Errorf("key file not found: %s (expanded from: %s)", expandedPath, path)
 	}
-	
+
 	data, err := os.ReadFile(expandedPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read key file %s: %w", expandedPath, err)
@@ -270,6 +264,46 @@ func loadEd25519Key(path string) (ed25519.PrivateKey, error) {
 
 	// TODO: Add PEM format support if needed
 	return nil, fmt.Errorf("unsupported key format; expected hex-encoded ed25519 private key (%d bytes)", ed25519.PrivateKeySize*2)
+}
+
+// loadEd25519PublicKey loads an ed25519 public key from a hex file.
+func loadEd25519PublicKey(path string) (ed25519.PublicKey, error) {
+	expandedPath, err := expandKeyPath(path)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := os.Stat(expandedPath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("public key file not found: %s (expanded from: %s)", expandedPath, path)
+	}
+
+	data, err := os.ReadFile(expandedPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read public key file %s: %w", expandedPath, err)
+	}
+
+	hexKey := strings.TrimSpace(string(data))
+	keyBytes, err := hex.DecodeString(hexKey)
+	if err != nil {
+		return nil, fmt.Errorf("invalid hex public key: %w", err)
+	}
+	if len(keyBytes) != ed25519.PublicKeySize {
+		return nil, fmt.Errorf("invalid public key length: got %d bytes, expected %d", len(keyBytes), ed25519.PublicKeySize)
+	}
+
+	return ed25519.PublicKey(keyBytes), nil
+}
+
+func expandKeyPath(path string) (string, error) {
+	expandedPath := path
+	if strings.HasPrefix(path, "~/") {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("failed to get home directory: %w", err)
+		}
+		expandedPath = filepath.Join(homeDir, path[2:])
+	}
+	return os.ExpandEnv(expandedPath), nil
 }
 
 // sanitizePackageName sanitizes a package name for use in filenames
