@@ -17,10 +17,10 @@ import (
 )
 
 type Client struct {
-	r          *resty.Client
-	baseURL    string
-	debug      bool
-	telemetry  bool
+	r         *resty.Client
+	baseURL   string
+	debug     bool
+	telemetry bool
 }
 
 func New(cfg config.Config) *Client {
@@ -164,54 +164,54 @@ func (c *Client) PostMultipart(path string, fields map[string]any, fileField, fi
 // Download fetches a remote URL (absolute or API-relative) and writes it to destPath.
 // If urlOrPath starts with "/", it is considered an API path and will be resolved against baseURL.
 func (c *Client) Download(urlOrPath string, destPath string) error {
-    target := urlOrPath
-    if strings.HasPrefix(urlOrPath, "/") {
-        target = c.baseURL + urlOrPath
-    }
-    if c.debug {
-        fmt.Printf("[DEBUG] DOWNLOAD %s -> %s\n", target, destPath)
-    }
-    resp, err := c.r.R().SetDoNotParseResponse(true).Get(target)
-    if err != nil {
-        if ne, ok := err.(*net.DNSError); ok {
-            return fmt.Errorf("cannot resolve host %q (%v). Try: --api-url or check connectivity", ne.Name, ne)
-        }
-        if opErr, ok := err.(*net.OpError); ok {
-            if opErr.Timeout() {
-                return fmt.Errorf("download timeout from %s", target)
-            }
-            return fmt.Errorf("network error downloading from %s: %w", target, err)
-        }
-        return fmt.Errorf("network error: %w", err)
-    }
-    defer resp.RawBody().Close()
-    if resp.IsError() {
-        return fmt.Errorf("download %s: %s", target, resp.Status())
-    }
-    if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
-        return err
-    }
-    out, err := os.Create(destPath)
-    if err != nil {
-        return err
-    }
-    defer out.Close()
-    if _, err := io.Copy(out, resp.RawBody()); err != nil {
-        return err
-    }
-    return nil
+	target := urlOrPath
+	if strings.HasPrefix(urlOrPath, "/") {
+		target = c.baseURL + urlOrPath
+	}
+	if c.debug {
+		fmt.Printf("[DEBUG] DOWNLOAD %s -> %s\n", target, destPath)
+	}
+	resp, err := c.r.R().SetDoNotParseResponse(true).Get(target)
+	if err != nil {
+		if ne, ok := err.(*net.DNSError); ok {
+			return fmt.Errorf("cannot resolve host %q (%v). Try: --api-url or check connectivity", ne.Name, ne)
+		}
+		if opErr, ok := err.(*net.OpError); ok {
+			if opErr.Timeout() {
+				return fmt.Errorf("download timeout from %s", target)
+			}
+			return fmt.Errorf("network error downloading from %s: %w", target, err)
+		}
+		return fmt.Errorf("network error: %w", err)
+	}
+	defer func() { _ = resp.RawBody().Close() }()
+	if resp.IsError() {
+		return fmt.Errorf("download %s: %s", target, resp.Status())
+	}
+	if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
+		return err
+	}
+	out, err := os.Create(destPath)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = out.Close() }()
+	if _, err := io.Copy(out, resp.RawBody()); err != nil {
+		return err
+	}
+	return nil
 }
 
 // SHA256 computes hex-encoded sha256 of a file.
 func (c *Client) SHA256(filePath string) (string, error) {
-    f, err := os.Open(filePath)
-    if err != nil {
-        return "", err
-    }
-    defer f.Close()
-    h := sha256.New()
-    if _, err := io.Copy(h, f); err != nil {
-        return "", err
-    }
-    return hex.EncodeToString(h.Sum(nil)), nil
+	f, err := os.Open(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer func() { _ = f.Close() }()
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
 }

@@ -8,11 +8,11 @@ import (
 func TestTestCommand_Integration(t *testing.T) {
 	// Test that test command can be created and has expected flags
 	cmd := TestCmd()
-	
+
 	if cmd == nil {
 		t.Error("TestCmd() returned nil")
 	}
-	
+
 	// Test that expected flags exist
 	expectedFlags := []string{"verbose", "format", "timeout", "parallel", "coverage", "output-dir"}
 	for _, flagName := range expectedFlags {
@@ -20,7 +20,7 @@ func TestTestCommand_Integration(t *testing.T) {
 			t.Errorf("Expected '%s' flag not found in test command", flagName)
 		}
 	}
-	
+
 	// Test command usage
 	if cmd.Use != "test [path]" {
 		t.Errorf("Expected usage 'test [path]', got '%s'", cmd.Use)
@@ -33,19 +33,19 @@ func TestTestCommand_FileDiscovery(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
-	
+	defer func() { _ = os.RemoveAll(tempDir) }()
+
 	// Change to temp directory
 	originalDir, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
 	defer func() { _ = os.Chdir(originalDir) }()
-	
+
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("Failed to change directory: %v", err)
 	}
-	
+
 	// Create test files
 	testFiles := map[string]string{
 		"test.itml": `{
@@ -65,30 +65,30 @@ func TestTestCommand_FileDiscovery(t *testing.T) {
 		}`,
 		"notest.txt": "not a test file",
 	}
-	
+
 	for filename, content := range testFiles {
 		if err := os.WriteFile(filename, []byte(content), 0644); err != nil {
 			t.Fatalf("Failed to create test file %s: %v", filename, err)
 		}
 	}
-	
+
 	// Test discovery
 	tests, err := discoverTests(".")
 	if err != nil {
 		t.Fatalf("Failed to discover tests: %v", err)
 	}
-	
+
 	// Should find 2 tests (1 from .itml example, 1 from .test.json)
 	if len(tests) != 2 {
 		t.Errorf("Expected 2 tests, found %d", len(tests))
 	}
-	
+
 	// Check test names
 	testNames := make(map[string]bool)
 	for _, test := range tests {
 		testNames[test.Name] = true
 	}
-	
+
 	expectedNames := []string{"test-intent.example", "custom-test"}
 	for _, expectedName := range expectedNames {
 		if !testNames[expectedName] {
@@ -141,7 +141,7 @@ func TestTestCommand_OutputComparison(t *testing.T) {
 			result:   false,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := compareOutputs(tt.actual, tt.expected)
@@ -158,30 +158,30 @@ func TestTestCommand_NoTestsFound(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
-	
+	defer func() { _ = os.RemoveAll(tempDir) }()
+
 	// Change to temp directory
 	originalDir, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
 	defer func() { _ = os.Chdir(originalDir) }()
-	
+
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("Failed to change directory: %v", err)
 	}
-	
+
 	// Create a non-test file
 	if err := os.WriteFile("readme.txt", []byte("not a test"), 0644); err != nil {
 		t.Fatalf("Failed to create file: %v", err)
 	}
-	
+
 	// Test discovery should find no tests
 	tests, err := discoverTests(".")
 	if err != nil {
 		t.Fatalf("Failed to discover tests: %v", err)
 	}
-	
+
 	if len(tests) != 0 {
 		t.Errorf("Expected 0 tests, found %d", len(tests))
 	}
@@ -193,31 +193,31 @@ func TestTestCommand_InvalidTestFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
-	
+	defer func() { _ = os.RemoveAll(tempDir) }()
+
 	// Change to temp directory
 	originalDir, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
 	defer func() { _ = os.Chdir(originalDir) }()
-	
+
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("Failed to change directory: %v", err)
 	}
-	
+
 	// Create invalid JSON test file
 	if err := os.WriteFile("invalid.test.json", []byte("{invalid json}"), 0644); err != nil {
 		t.Fatalf("Failed to create invalid test file: %v", err)
 	}
-	
+
 	// Test discovery should handle invalid files gracefully
 	tests, err := discoverTests(".")
 	if err != nil {
 		// This is expected for invalid JSON
 		return
 	}
-	
+
 	// Should find 0 tests due to invalid JSON
 	if len(tests) != 0 {
 		t.Errorf("Expected 0 tests due to invalid JSON, found %d", len(tests))

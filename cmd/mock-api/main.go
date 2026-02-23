@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -19,10 +20,10 @@ type PackageRegistry struct {
 }
 
 type Package struct {
-	Name      string `json:"name"`
-	Version   string `json:"version"`
-	Tarball   string `json:"tarball"`
-	SHA256    string `json:"sha256"`
+	Name        string    `json:"name"`
+	Version     string    `json:"version"`
+	Tarball     string    `json:"tarball"`
+	SHA256      string    `json:"sha256"`
 	PublishedAt time.Time `json:"published_at"`
 }
 
@@ -50,11 +51,11 @@ func publishHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no file uploaded", http.StatusBadRequest)
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// Read file content
-	fileContent := make([]byte, fileHeader.Size)
-	if _, err := file.Read(fileContent); err != nil {
+	fileContent, err := io.ReadAll(file)
+	if err != nil {
 		http.Error(w, "failed to read file", http.StatusInternalServerError)
 		return
 	}
@@ -84,7 +85,9 @@ func publishHandler(w http.ResponseWriter, r *http.Request) {
 	if _, exists := registry.packages[pkgKey]; exists {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusConflict)
-		json.NewEncoder(w).Encode(map[string]string{"error": "version already exists"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "version already exists"}); err != nil {
+			log.Printf("failed to write conflict response: %v", err)
+		}
 		return
 	}
 
@@ -103,11 +106,13 @@ func publishHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
+	if err := json.NewEncoder(w).Encode(map[string]string{
 		"message": "package published successfully",
 		"name":    name,
 		"version": version,
-	})
+	}); err != nil {
+		log.Printf("failed to write publish response: %v", err)
+	}
 }
 
 // GET /v1/packages/resolve?spec=@scope/name[@version] - Resolve package
@@ -130,7 +135,9 @@ func resolveHandler(w http.ResponseWriter, r *http.Request) {
 		if latest == "" {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(map[string]string{"error": "package not found"})
+			if err := json.NewEncoder(w).Encode(map[string]string{"error": "package not found"}); err != nil {
+				log.Printf("failed to write not-found response: %v", err)
+			}
 			return
 		}
 		version = latest
@@ -141,12 +148,16 @@ func resolveHandler(w http.ResponseWriter, r *http.Request) {
 	if !exists {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]string{"error": "package not found"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "package not found"}); err != nil {
+			log.Printf("failed to write not-found response: %v", err)
+		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(pkg)
+	if err := json.NewEncoder(w).Encode(pkg); err != nil {
+		log.Printf("failed to write resolve response: %v", err)
+	}
 }
 
 // GET /v1/packages/tarball/:name/:version.itpkg - Download tarball
@@ -170,7 +181,9 @@ func tarballHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/gzip")
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(content)))
-	w.Write(content)
+	if _, err := w.Write(content); err != nil {
+		log.Printf("failed to write tarball response: %v", err)
+	}
 }
 
 // GET /v1/packages/search?q=query - Search packages
@@ -188,19 +201,23 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{
 		"count":    len(results),
 		"packages": results,
-	})
+	}); err != nil {
+		log.Printf("failed to write search response: %v", err)
+	}
 }
 
 // GET /health - Health check
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "ok",
 		"time":   time.Now(),
-	})
+	}); err != nil {
+		log.Printf("failed to write health response: %v", err)
+	}
 }
 
 // Helper: Parse package name from filename
@@ -266,9 +283,9 @@ func main() {
 
 	log.Printf("🚀 Mock IntentRegistry API starting on http://localhost:%s", port)
 	log.Printf("   Health: http://localhost:%s/health", port)
-	log.Printf("   Publish: POST /v1/packages/publish", port)
-	log.Printf("   Resolve: GET /v1/packages/resolve?spec=@scope/name[@version]", port)
-	log.Printf("   Search: GET /v1/packages/search?q=query", port)
+	log.Printf("   Publish: POST /v1/packages/publish")
+	log.Printf("   Resolve: GET /v1/packages/resolve?spec=@scope/name[@version]")
+	log.Printf("   Search: GET /v1/packages/search?q=query")
 
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal(err)

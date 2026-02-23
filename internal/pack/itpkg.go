@@ -77,13 +77,21 @@ func CreateItpkg(srcDir, outputPath string, signKey ed25519.PrivateKey, unsigned
 	}()
 
 	gz := gzip.NewWriter(outFile)
-	defer gz.Close()
+	defer func() {
+		if closeErr := gz.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 	tw := tar.NewWriter(gz)
-	defer tw.Close()
+	defer func() {
+		if closeErr := tw.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	// Build MANIFEST.sha256 while adding files
 	var manifestEntries []ManifestEntry
-	
+
 	// Add itpkg.json first
 	manifestJSON, err := json.MarshalIndent(manifest, "", "  ")
 	if err != nil {
@@ -315,4 +323,3 @@ func addBytesToTar(tw *tar.Writer, b []byte, mode os.FileMode, name string) erro
 	_, err := tw.Write(b)
 	return err
 }
-

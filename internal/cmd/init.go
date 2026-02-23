@@ -13,9 +13,9 @@ import (
 
 func InitCmd() *cobra.Command {
 	var (
-		force  bool
-		app    bool
-		scope  string
+		force bool
+		app   bool
+		scope string
 	)
 
 	cmd := &cobra.Command{
@@ -42,18 +42,6 @@ Examples:
 			if len(args) > 0 {
 				projectName = args[0]
 				projectDir = projectName
-				
-				// Check if directory already exists
-				if _, err := os.Stat(projectDir); err == nil {
-					if !force {
-						return fmt.Errorf("directory %s already exists. Use --force to overwrite", projectDir)
-					}
-				} else {
-					// Create directory
-					if err := os.MkdirAll(projectDir, 0755); err != nil {
-						return fmt.Errorf("failed to create directory: %w", err)
-					}
-				}
 			} else {
 				// Use current directory
 				dir, err := os.Getwd()
@@ -67,6 +55,20 @@ Examples:
 			// Validate project name
 			if projectName == "" || strings.ContainsAny(projectName, " \t\n\r/\\") {
 				return fmt.Errorf("invalid project name: %q (must be non-empty and not contain spaces or path separators)", projectName)
+			}
+
+			if len(args) > 0 {
+				// Check if directory already exists
+				if _, err := os.Stat(projectDir); err == nil {
+					if !force {
+						return fmt.Errorf("directory %s already exists. Use --force to overwrite", projectDir)
+					}
+				} else {
+					// Create directory
+					if err := os.MkdirAll(projectDir, 0755); err != nil {
+						return fmt.Errorf("failed to create directory: %w", err)
+					}
+				}
 			}
 
 			// Check if project already exists
@@ -99,10 +101,10 @@ Examples:
 
 			// Create itpkg.json
 			manifest := pack.ItpkgManifest{
-				Name:        pkgName,
-				Version:     "0.1.0",
-				Description: fmt.Sprintf("Intent package for %s", projectName),
-				ItmlVersion: "0.1",
+				Name:         pkgName,
+				Version:      "0.1.0",
+				Description:  fmt.Sprintf("Intent package for %s", projectName),
+				ItmlVersion:  "0.1",
 				Capabilities: []string{},
 				Policies: map[string]interface{}{
 					"security": map[string]interface{}{

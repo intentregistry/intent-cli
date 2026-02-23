@@ -192,7 +192,10 @@ Creates `.itpkg` file containing:
 
 ```bash
 # Verify package signature and integrity
-intent verify dist/my-package-0.1.0.itpkg
+intent verify dist/my-package-0.1.0.itpkg --public-key ./public_key.hex
+
+# Integrity-only check for unsigned artifacts
+intent verify dist/my-package-0.1.0.itpkg --allow-unsigned
 ```
 
 ## Publishing
