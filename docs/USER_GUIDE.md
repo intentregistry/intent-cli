@@ -178,6 +178,7 @@ intent package . --unsigned
 
 # Signed package (production)
 intent package . --sign-key ~/.ssh/intent_sign_key.hex
+# (also supports PEM keys, e.g. ~/.ssh/intent_sign_key.pem)
 ```
 
 ### Package Output

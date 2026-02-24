@@ -140,7 +140,7 @@ The `.itpkg` format is a signed, versioned Intent package container:
 # Package with scaffold (creates itpkg.json and required directories)
 intent package . --scaffold --unsigned
 
-# Package with signing
+# Package with signing (hex or PEM key)
 export INTENT_SIGN_KEY=~/.ssh/private_key.hex
 intent package . --out dist/
 ```

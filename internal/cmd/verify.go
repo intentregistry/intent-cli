@@ -116,7 +116,7 @@ func VerifyCmd() *cobra.Command {
 		},
 	}
 
-	c.Flags().StringVar(&publicKeyPath, "public-key", "", "Path to ed25519 public key (hex format)")
+	c.Flags().StringVar(&publicKeyPath, "public-key", "", "Path to ed25519 public key (hex or PEM)")
 	c.Flags().BoolVar(&allowUnsigned, "allow-unsigned", false, "Allow unsigned packages (integrity only)")
 	c.Flags().BoolVar(&requireSignature, "require-signature", false, "Fail unless signature is cryptographically verified")
 	c.Flags().BoolVar(&jsonOutput, "json", false, "Output verification result as JSON")

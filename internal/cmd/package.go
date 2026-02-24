@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"crypto/ed25519"
+	"crypto/x509"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -168,7 +170,7 @@ Examples:
 
 	c.Flags().StringVar(&outDir, "out", "", "Output directory for the package (default: dist/)")
 	c.Flags().BoolVar(&unsigned, "unsigned", false, "Allow creating unsigned .itpkg (not recommended)")
-	c.Flags().StringVar(&signKeyPath, "sign-key", "", "Path to ed25519 private key file (defaults to env INTENT_SIGN_KEY)")
+	c.Flags().StringVar(&signKeyPath, "sign-key", "", "Path to ed25519 private key file (hex or PEM, defaults to env INTENT_SIGN_KEY)")
 	c.Flags().BoolVar(&scaffold, "scaffold", false, "Generate itpkg.json if missing")
 
 	return c
@@ -236,7 +238,7 @@ func scaffoldItpkgJSON(dir, name string) error {
 	return os.WriteFile(manifestPath, manifestJSON, 0644)
 }
 
-// loadEd25519Key loads an ed25519 private key from a hex file.
+// loadEd25519Key loads an ed25519 private key from a hex or PEM file.
 func loadEd25519Key(path string) (ed25519.PrivateKey, error) {
 	expandedPath, err := expandKeyPath(path)
 	if err != nil {
@@ -253,20 +255,31 @@ func loadEd25519Key(path string) (ed25519.PrivateKey, error) {
 		return nil, fmt.Errorf("failed to read key file %s: %w", expandedPath, err)
 	}
 
-	// Try hex format first (64 bytes = 128 hex chars)
-	if len(data) == 128 || len(data) == 129 { // 128 or 128+\n
-		hexKey := strings.TrimSpace(string(data))
-		keyBytes, err := hex.DecodeString(hexKey)
-		if err == nil && len(keyBytes) == ed25519.PrivateKeySize {
-			return ed25519.PrivateKey(keyBytes), nil
-		}
+	trimmed := strings.TrimSpace(string(data))
+
+	// Try hex format first (64 bytes = 128 hex chars).
+	if keyBytes, err := hex.DecodeString(trimmed); err == nil && len(keyBytes) == ed25519.PrivateKeySize {
+		return ed25519.PrivateKey(keyBytes), nil
 	}
 
-	// TODO: Add PEM format support if needed
-	return nil, fmt.Errorf("unsupported key format; expected hex-encoded ed25519 private key (%d bytes)", ed25519.PrivateKeySize*2)
+	// Then try PEM (PKCS#8).
+	block, _ := pem.Decode(data)
+	if block != nil {
+		pk, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("invalid PEM private key: %w", err)
+		}
+		k, ok := pk.(ed25519.PrivateKey)
+		if ok {
+			return k, nil
+		}
+		return nil, fmt.Errorf("PEM key is not an ed25519 private key")
+	}
+
+	return nil, fmt.Errorf("unsupported key format; expected ed25519 private key in hex (%d bytes) or PEM (PKCS#8)", ed25519.PrivateKeySize*2)
 }
 
-// loadEd25519PublicKey loads an ed25519 public key from a hex file.
+// loadEd25519PublicKey loads an ed25519 public key from a hex or PEM file.
 func loadEd25519PublicKey(path string) (ed25519.PublicKey, error) {
 	expandedPath, err := expandKeyPath(path)
 	if err != nil {
@@ -282,16 +295,28 @@ func loadEd25519PublicKey(path string) (ed25519.PublicKey, error) {
 		return nil, fmt.Errorf("failed to read public key file %s: %w", expandedPath, err)
 	}
 
-	hexKey := strings.TrimSpace(string(data))
-	keyBytes, err := hex.DecodeString(hexKey)
-	if err != nil {
-		return nil, fmt.Errorf("invalid hex public key: %w", err)
-	}
-	if len(keyBytes) != ed25519.PublicKeySize {
-		return nil, fmt.Errorf("invalid public key length: got %d bytes, expected %d", len(keyBytes), ed25519.PublicKeySize)
+	trimmed := strings.TrimSpace(string(data))
+	if keyBytes, err := hex.DecodeString(trimmed); err == nil {
+		if len(keyBytes) != ed25519.PublicKeySize {
+			return nil, fmt.Errorf("invalid public key length: got %d bytes, expected %d", len(keyBytes), ed25519.PublicKeySize)
+		}
+		return ed25519.PublicKey(keyBytes), nil
 	}
 
-	return ed25519.PublicKey(keyBytes), nil
+	block, _ := pem.Decode(data)
+	if block != nil {
+		pubAny, err := x509.ParsePKIXPublicKey(block.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("invalid PEM public key: %w", err)
+		}
+		pub, ok := pubAny.(ed25519.PublicKey)
+		if !ok {
+			return nil, fmt.Errorf("PEM key is not an ed25519 public key")
+		}
+		return pub, nil
+	}
+
+	return nil, fmt.Errorf("unsupported public key format; expected ed25519 public key in hex (%d bytes) or PEM (PKIX)", ed25519.PublicKeySize*2)
 }
 
 func expandKeyPath(path string) (string, error) {
