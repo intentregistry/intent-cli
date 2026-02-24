@@ -363,8 +363,8 @@ GOOS=windows GOARCH=amd64 go build -o intent-windows.exe ./cmd/intent
 
 ```bash
 # Tag a version
-git tag v0.4.0
-git push origin v0.4.0
+git tag v0.3.14
+git push origin v0.3.14
 
 # GitHub Actions will automatically:
 # 1. Run CI tests
@@ -372,6 +372,17 @@ git push origin v0.4.0
 # 3. Create GitHub release
 # 4. Update Homebrew formula
 ```
+
+### Run Release Dry-Run (No Publish)
+
+Use the manual release workflow to validate GoReleaser config without creating a tag or publishing artifacts.
+
+```bash
+gh workflow run release.yml -f dry_run=true
+```
+
+This executes:
+- `goreleaser release --snapshot --clean --skip=publish --skip=announce`
 
 ## Performance Testing
 
