@@ -260,7 +260,9 @@ CLI Behaviors & Error Codes
 **intent verify ./pkg.itpkg**
 - Validates all file checksums from MANIFEST.sha256
 - Verifies ed25519 signature over MANIFEST.sha256 when `--public-key` is provided
+- Enforces cryptographic verification with `--require-signature`
 - Supports unsigned packages via `--allow-unsigned` (integrity only)
+- Supports JSON output via `--json` for CI/automation use cases
 
 **Exit Codes:**
 - `0` - Success

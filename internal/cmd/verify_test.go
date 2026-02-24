@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
@@ -138,5 +139,91 @@ func TestVerifyCommand_FailsWithWrongPublicKey(t *testing.T) {
 	err = cmd.Execute()
 	if err == nil || !strings.Contains(err.Error(), "signature verification failed") {
 		t.Fatalf("expected signature verification error, got: %v", err)
+	}
+}
+
+func TestVerifyCommand_RequireSignatureFailsWithoutPublicKey(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "intent-verify-require-key-*")
+	if err != nil {
+		t.Fatalf("tempdir: %v", err)
+	}
+	defer func() { _ = os.RemoveAll(tmpDir) }()
+
+	projectDir := filepath.Join(tmpDir, "project")
+	if err := scaffoldVerifyProject(projectDir); err != nil {
+		t.Fatalf("scaffold project: %v", err)
+	}
+	_, priv, err := ed25519.GenerateKey(nil)
+	if err != nil {
+		t.Fatalf("generate key: %v", err)
+	}
+	pkgPath := filepath.Join(tmpDir, "signed.itpkg")
+	if _, err := pack.CreateItpkg(projectDir, pkgPath, priv, false); err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+
+	cmd := VerifyCmd()
+	cmd.SetArgs([]string{pkgPath, "--require-signature"})
+	err = cmd.Execute()
+	if err == nil || !strings.Contains(err.Error(), "--require-signature requires --public-key") {
+		t.Fatalf("expected require-signature error, got: %v", err)
+	}
+}
+
+func TestVerifyCommand_RequireSignatureFailsUnsigned(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "intent-verify-require-unsigned-*")
+	if err != nil {
+		t.Fatalf("tempdir: %v", err)
+	}
+	defer func() { _ = os.RemoveAll(tmpDir) }()
+
+	projectDir := filepath.Join(tmpDir, "project")
+	if err := scaffoldVerifyProject(projectDir); err != nil {
+		t.Fatalf("scaffold project: %v", err)
+	}
+	pkgPath := filepath.Join(tmpDir, "unsigned.itpkg")
+	if _, err := pack.CreateItpkg(projectDir, pkgPath, nil, true); err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+
+	cmd := VerifyCmd()
+	cmd.SetArgs([]string{pkgPath, "--allow-unsigned", "--require-signature"})
+	err = cmd.Execute()
+	if err == nil || !strings.Contains(err.Error(), "package is unsigned but --require-signature was set") {
+		t.Fatalf("expected unsigned/signature error, got: %v", err)
+	}
+}
+
+func TestVerifyCommand_JSONOutput(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "intent-verify-json-*")
+	if err != nil {
+		t.Fatalf("tempdir: %v", err)
+	}
+	defer func() { _ = os.RemoveAll(tmpDir) }()
+
+	projectDir := filepath.Join(tmpDir, "project")
+	if err := scaffoldVerifyProject(projectDir); err != nil {
+		t.Fatalf("scaffold project: %v", err)
+	}
+	pkgPath := filepath.Join(tmpDir, "unsigned.itpkg")
+	if _, err := pack.CreateItpkg(projectDir, pkgPath, nil, true); err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+
+	var out bytes.Buffer
+	cmd := VerifyCmd()
+	cmd.SetOut(&out)
+	cmd.SetErr(&out)
+	cmd.SetArgs([]string{pkgPath, "--allow-unsigned", "--json"})
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("verify failed: %v", err)
+	}
+
+	var got verifyResult
+	if err := json.Unmarshal(out.Bytes(), &got); err != nil {
+		t.Fatalf("expected JSON output, got %q (err: %v)", out.String(), err)
+	}
+	if !got.Integrity || got.Signed || got.SignatureStatus != "unsigned" {
+		t.Fatalf("unexpected verify JSON output: %+v", got)
 	}
 }

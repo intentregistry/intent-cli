@@ -194,8 +194,14 @@ Creates `.itpkg` file containing:
 # Verify package signature and integrity
 intent verify dist/my-package-0.1.0.itpkg --public-key ./public_key.hex
 
+# Enforce cryptographic verification (fails if signature can't be verified)
+intent verify dist/my-package-0.1.0.itpkg --public-key ./public_key.hex --require-signature
+
 # Integrity-only check for unsigned artifacts
 intent verify dist/my-package-0.1.0.itpkg --allow-unsigned
+
+# Machine-readable output (for scripts/CI)
+intent verify dist/my-package-0.1.0.itpkg --allow-unsigned --json
 ```
 
 ## Publishing

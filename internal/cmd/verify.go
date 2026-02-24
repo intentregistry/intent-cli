@@ -6,6 +6,7 @@ import (
 	"crypto/ed25519"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -16,8 +17,10 @@ import (
 
 func VerifyCmd() *cobra.Command {
 	var (
-		publicKeyPath string
-		allowUnsigned bool
+		publicKeyPath    string
+		allowUnsigned    bool
+		requireSignature bool
+		jsonOutput       bool
 	)
 
 	c := &cobra.Command{
@@ -26,6 +29,10 @@ func VerifyCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			pkgPath := args[0]
+			result := verifyResult{
+				Package: pkgPath,
+			}
+
 			files, err := readItpkgFiles(pkgPath)
 			if err != nil {
 				return err
@@ -56,15 +63,30 @@ func VerifyCmd() *cobra.Command {
 					return fmt.Errorf("checksum mismatch for %s: got %s expected %s", entry.Path, got, entry.Hash)
 				}
 			}
+			result.Integrity = true
 
-			fmt.Println("✅ Integrity checks passed")
+			writeVerifyMessage(cmd, jsonOutput, "✅ Integrity checks passed")
 
 			if string(signature) == "UNSIGNED" {
+				result.Signed = false
+				result.SignatureStatus = "unsigned"
+
+				if requireSignature {
+					return fmt.Errorf("package is unsigned but --require-signature was set")
+				}
 				if !allowUnsigned {
 					return fmt.Errorf("package is unsigned; re-run with --allow-unsigned to accept unsigned artifacts")
 				}
-				fmt.Println("⚠️  Package is unsigned (--allow-unsigned enabled)")
-				return nil
+				writeVerifyMessage(cmd, jsonOutput, "⚠️  Package is unsigned (--allow-unsigned enabled)")
+				result.Warnings = append(result.Warnings, "package is unsigned")
+				return writeVerifyResult(cmd, jsonOutput, result)
+			}
+
+			result.Signed = true
+			result.SignatureStatus = "present"
+
+			if requireSignature && publicKeyPath == "" {
+				return fmt.Errorf("--require-signature requires --public-key for cryptographic verification")
 			}
 
 			if len(signature) != ed25519.SignatureSize {
@@ -72,8 +94,10 @@ func VerifyCmd() *cobra.Command {
 			}
 
 			if publicKeyPath == "" {
-				fmt.Println("⚠️  Signature present but not cryptographically verified (use --public-key)")
-				return nil
+				writeVerifyMessage(cmd, jsonOutput, "⚠️  Signature present but not cryptographically verified (use --public-key)")
+				result.SignatureStatus = "present_unverified"
+				result.Warnings = append(result.Warnings, "signature present but not cryptographically verified")
+				return writeVerifyResult(cmd, jsonOutput, result)
 			}
 
 			publicKey, err := loadEd25519PublicKey(publicKeyPath)
@@ -85,14 +109,48 @@ func VerifyCmd() *cobra.Command {
 				return fmt.Errorf("signature verification failed")
 			}
 
-			fmt.Println("✅ Signature verified (ed25519)")
-			return nil
+			writeVerifyMessage(cmd, jsonOutput, "✅ Signature verified (ed25519)")
+			result.SignatureVerified = true
+			result.SignatureStatus = "verified"
+			return writeVerifyResult(cmd, jsonOutput, result)
 		},
 	}
 
 	c.Flags().StringVar(&publicKeyPath, "public-key", "", "Path to ed25519 public key (hex format)")
 	c.Flags().BoolVar(&allowUnsigned, "allow-unsigned", false, "Allow unsigned packages (integrity only)")
+	c.Flags().BoolVar(&requireSignature, "require-signature", false, "Fail unless signature is cryptographically verified")
+	c.Flags().BoolVar(&jsonOutput, "json", false, "Output verification result as JSON")
 	return c
+}
+
+type verifyResult struct {
+	Package           string   `json:"package"`
+	Integrity         bool     `json:"integrity"`
+	Signed            bool     `json:"signed"`
+	SignatureVerified bool     `json:"signatureVerified"`
+	SignatureStatus   string   `json:"signatureStatus"`
+	Warnings          []string `json:"warnings,omitempty"`
+}
+
+func writeVerifyResult(cmd *cobra.Command, jsonOutput bool, result verifyResult) error {
+	if !jsonOutput {
+		return nil
+	}
+	data, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal verify result: %w", err)
+	}
+	if _, err := fmt.Fprintln(cmd.OutOrStdout(), string(data)); err != nil {
+		return fmt.Errorf("failed to write verify result: %w", err)
+	}
+	return nil
+}
+
+func writeVerifyMessage(cmd *cobra.Command, jsonOutput bool, msg string) {
+	if jsonOutput {
+		return
+	}
+	_, _ = fmt.Fprintln(cmd.OutOrStdout(), msg)
 }
 
 type manifestEntry struct {

@@ -42,6 +42,7 @@ intent test [path] --format json
 intent whoami
 intent doctor
 intent verify dist/package.itpkg --public-key ./public_key.hex
+intent verify dist/package.itpkg --public-key ./public_key.hex --require-signature --json
 ```
 
 ## Configuration
