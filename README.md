@@ -3,6 +3,18 @@
 The official command-line interface for publishing and installing
 **Intents** on [IntentRegistry](https://intentregistry.com).
 
+## Project Objective and Phases
+
+Keep this repo focused on one outcome: a stable end-to-end lifecycle
+`create -> run -> package -> verify -> publish -> search -> install`,
+with predictable CI and release distribution.
+
+For concise project direction and execution state, use:
+- [Project Overview](docs/PROJECT_OVERVIEW.md) (EPICS/PHASES, scope, objective)
+- [Plan](PLAN.md) (phase order, exit criteria)
+- [Tasks](TASKS.md) (active checklist only)
+- [Status](STATUS.md) (current snapshot)
+
 ## Installation
 
 You can install the CLI using Homebrew:
