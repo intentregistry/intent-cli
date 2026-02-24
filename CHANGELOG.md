@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.15] - 2026-02-24
+
 ### Added
 - Added CI smoke workflow step to run end-to-end CLI flow (`init/package/verify/publish/search/install`) against local `mock-api`
 - Added release workflow post-publish verification job (`make release-verify TAG=$GITHUB_REF_NAME`)
