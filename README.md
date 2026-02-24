@@ -15,6 +15,10 @@ For concise project direction and execution state, use:
 - [Tasks](TASKS.md) (active checklist only)
 - [Status](STATUS.md) (current snapshot)
 
+Scope is enforced in contribution templates:
+- `.github/PULL_REQUEST_TEMPLATE.md`
+- `.github/ISSUE_TEMPLATE/`
+
 ## Installation
 
 You can install the CLI using Homebrew:

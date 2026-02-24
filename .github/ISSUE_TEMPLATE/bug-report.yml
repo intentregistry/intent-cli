@@ -1,0 +1,52 @@
+name: Bug report
+description: Report a reliability/security/release issue in intent-cli
+title: "bug: "
+labels:
+  - bug
+body:
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope classification
+      description: Select the maintenance-mode category
+      options:
+        - Security fix
+        - Core lifecycle reliability regression
+        - CI/release breakage
+        - Critical docs drift
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: What breaks and who is affected?
+      placeholder: "Example: intent install fails for signed packages on macOS"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Minimal steps to reproduce
+      placeholder: |
+        1. Run ...
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / evidence
+      render: shell

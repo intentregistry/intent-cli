@@ -5,6 +5,7 @@ Thank you for your interest in contributing to the Intent CLI! This document pro
 ## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
+- [Maintenance Mode Scope Gate](#maintenance-mode-scope-gate)
 - [Getting Started](#getting-started)
 - [Development Setup](#development-setup)
 - [Project Structure](#project-structure)
@@ -18,6 +19,23 @@ Thank you for your interest in contributing to the Intent CLI! This document pro
 ## Code of Conduct
 
 This project follows the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/). By participating, you agree to uphold this code.
+
+## Maintenance Mode Scope Gate
+
+This repository is in a scoped maintenance mode to protect delivery speed across the wider ecosystem.
+
+Allowed by default:
+- Security fixes
+- Reliability regressions in the core lifecycle (`init/run/package/verify/publish/search/install`)
+- CI or release breakages
+- Critical documentation drift that can cause operational mistakes
+
+Requires explicit maintainer approval before implementation:
+- New command families
+- Non-critical feature expansions
+- Broad refactors without direct reliability or release impact
+
+All pull requests must complete the scope checklist in the PR template.
 
 ## Getting Started
 

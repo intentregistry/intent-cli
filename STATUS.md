@@ -10,6 +10,7 @@ Deliver a stable CLI for the IntentRegistry lifecycle:
 - Release: `v0.3.18` published
 - CI: green (`CI`, `dev-build`, `release`)
 - Distribution: GitHub Releases + Homebrew validated
+- Scope gate: PR and issue templates enforce maintenance-mode classification
 - Current phase: **P5 - Hardening & Drift Control**
 
 ## Phase Progress
