@@ -120,7 +120,27 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
 - **Implementation**: `internal/cmd/completion.go`
 - **Features**: Shell completion for bash, zsh, fish, and PowerShell
 
-## Recent Improvements (v0.3.14+)
+## Recent Improvements (v0.3.15-v0.3.18)
+
+### ✅ Release Reliability and Verification
+- Added CI smoke workflow step to run an end-to-end CLI flow (`init/package/verify/publish/search/install`) against local `mock-api`
+- Added post-publish release verification job (`make release-verify TAG=$GITHUB_REF_NAME`)
+- Added Homebrew smoke install job in release workflow
+- Added `scripts/ci/smoke_local_registry.sh` and `scripts/verify-release.sh` to support repeatable local and CI verification
+
+### ✅ `intent verify` Hardening
+- Added `--require-signature` to enforce cryptographic signature verification
+- Added `--json` for machine-readable verification output
+
+### ✅ Flexible Signing Key Input
+- `intent package --sign-key` now accepts hex-encoded ed25519 private keys and PEM (PKCS#8) private keys
+- `intent verify --public-key` now accepts hex-encoded ed25519 public keys and PEM (PKIX) public keys
+
+### ✅ `intent search` Improvements
+- Added `--owner` for case-insensitive owner filtering
+- Added `--sort` with `relevance`, `slug`, and `owner`
+- Added `--limit` to cap results (`0` means unlimited)
+- Improved response normalization to support both `items` and `packages` API payload shapes
 
 ### ✅ Mock API Server
 - **Implementation**: `cmd/mock-api/main.go`
