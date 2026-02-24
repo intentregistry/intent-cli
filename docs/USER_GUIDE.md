@@ -262,6 +262,9 @@ intent search weather
 
 # Search with filter
 intent search "@scope/*"
+
+# Advanced filtering/sorting
+intent search agent --owner scope --sort slug --limit 10
 ```
 
 ### Install Location

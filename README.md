@@ -34,6 +34,7 @@ intent run FILE.itml --inputs name=World
 
 # Discovery
 intent search "vector embeddings"
+intent search "agent" --owner acme --sort slug --limit 10
 
 # Testing
 intent test [path] --format json

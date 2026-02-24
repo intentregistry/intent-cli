@@ -19,6 +19,15 @@ func TestSearchCommand_Integration(t *testing.T) {
 	if cmd.Flags().Lookup("json") == nil {
 		t.Error("Expected 'json' flag not found in search command")
 	}
+	if cmd.Flags().Lookup("limit") == nil {
+		t.Error("Expected 'limit' flag not found in search command")
+	}
+	if cmd.Flags().Lookup("owner") == nil {
+		t.Error("Expected 'owner' flag not found in search command")
+	}
+	if cmd.Flags().Lookup("sort") == nil {
+		t.Error("Expected 'sort' flag not found in search command")
+	}
 
 	// Test command usage
 	if cmd.Use != "search <query>" {

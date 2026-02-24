@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added richer `intent search` controls: `--owner`, `--sort`, and `--limit`
+
+### Changed
+- Improved `intent search` response normalization to support both `items` and `packages` API payload shapes
+
 ## [0.3.17] - 2026-02-24
 
 ### Added
