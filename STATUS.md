@@ -120,7 +120,7 @@ The Intent CLI is a Go-based command-line tool for publishing and installing AI 
 - **Implementation**: `internal/cmd/completion.go`
 - **Features**: Shell completion for bash, zsh, fish, and PowerShell
 
-## Recent Improvements (v0.4.0+)
+## Recent Improvements (v0.3.14+)
 
 ### ✅ Mock API Server
 - **Implementation**: `cmd/mock-api/main.go`
@@ -233,9 +233,9 @@ All examples follow the ITML DSL format and include:
 8. **Performance optimization**: Benchmark and optimize large package handling (future)
 
 ## Current Version
-- **Version**: 0.4.0
-- **Commit**: 885818d (latest)
-- **Date**: 2025-10-29
+- **Version**: 0.3.14
+- **Commit**: (see latest tag)
+- **Date**: 2026-02-24
 
 ---
 *Generated on: $(date)*

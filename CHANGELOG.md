@@ -7,12 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.14] - 2026-02-24
+
 ### Added
 - Added `intent verify` command to validate `.itpkg` checksums and optionally verify ed25519 signatures via `--public-key`
+- Added CLI-level integration tests for `intent verify` covering signed and unsigned package verification flows
 
 ### Fixed
 - Fixed `cmd/mock-api` build break caused by invalid `log.Printf` argument usage
 - Updated init integration tests and project init validation flow to match `itpkg.json`-based scaffolding
+- Fixed CI workflow compatibility by updating GitHub Actions versions used in `.github/workflows/ci.yml`
+- Removed duplicate `golangci` workflow (`.github/workflows/lint.yml`) to avoid redundant lint runs
 
 ## [0.3.7] - 2025-10-29
 
