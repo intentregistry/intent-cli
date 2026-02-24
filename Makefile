@@ -18,3 +18,7 @@ checksum:
 
 tree:
 	tree -a -I '.git|dist|node_modules|*.log|*.tmp|.DS_Store' > structure.txt
+
+release-verify:
+	@test -n "$(TAG)" || (echo "Usage: make release-verify TAG=vX.Y.Z" && exit 1)
+	bash scripts/verify-release.sh $(TAG)

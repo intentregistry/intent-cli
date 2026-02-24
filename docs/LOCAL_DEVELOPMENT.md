@@ -371,6 +371,9 @@ git push origin v0.3.14
 # 2. Build for all platforms
 # 3. Create GitHub release
 # 4. Update Homebrew formula
+
+# Verify published release + Homebrew formula
+make release-verify TAG=v0.3.14
 ```
 
 ### Run Release Dry-Run (No Publish)
