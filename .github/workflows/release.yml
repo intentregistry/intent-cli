@@ -32,3 +32,26 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}                 # for release in this repo
           HOMEBREW_GITHUB_TOKEN: ${{ secrets.HOMEBREW_GITHUB_TOKEN }} # PAT with write on tap
+
+  verify-release:
+    needs: goreleaser
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify published release and Homebrew tap sync
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: make release-verify TAG=${GITHUB_REF_NAME}
+
+  brew-smoke:
+    needs: goreleaser
+    runs-on: macos-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Smoke install via Homebrew tap
+        run: |
+          brew update
+          brew install intentregistry/tap/intent-cli
+          intent --version

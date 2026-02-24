@@ -93,10 +93,11 @@ func publishHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Store package
 	tarballPath := fmt.Sprintf("/v1/packages/tarball/%s/%s.itpkg", name, version)
+	baseURL := "http://" + r.Host
 	registry.packages[pkgKey] = &Package{
 		Name:        name,
 		Version:     version,
-		Tarball:     fmt.Sprintf("http://localhost:8080%s", tarballPath),
+		Tarball:     fmt.Sprintf("%s%s", baseURL, tarballPath),
 		SHA256:      sha256,
 		PublishedAt: time.Now(),
 	}
@@ -279,6 +280,7 @@ func main() {
 	http.HandleFunc("/v1/packages/publish", publishHandler)
 	http.HandleFunc("/v1/packages/resolve", resolveHandler)
 	http.HandleFunc("/v1/packages/search", searchHandler)
+	http.HandleFunc("/v1/search", searchHandler) // Backward-compatible alias used by CLI
 	http.HandleFunc("/v1/packages/tarball/", tarballHandler)
 
 	log.Printf("🚀 Mock IntentRegistry API starting on http://localhost:%s", port)

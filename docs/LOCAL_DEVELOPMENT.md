@@ -359,6 +359,13 @@ GOOS=darwin GOARCH=arm64 go build -o intent-darwin ./cmd/intent
 GOOS=windows GOARCH=amd64 go build -o intent-windows.exe ./cmd/intent
 ```
 
+### Local Mock Registry Smoke Test
+
+```bash
+# End-to-end smoke test: init/package/verify/publish/search/install
+bash scripts/ci/smoke_local_registry.sh
+```
+
 ### Create a Release
 
 ```bash

@@ -233,9 +233,9 @@ All examples follow the ITML DSL format and include:
 8. **Performance optimization**: Benchmark and optimize large package handling (future)
 
 ## Current Version
-- **Version**: 0.3.14
-- **Commit**: (see latest tag)
-- **Date**: 2026-02-24
+- **Source of Truth**: Git tags/releases
+- **Latest stable**: See latest `v*` tag in repository
+- **Release date**: See GitHub release metadata for the selected tag
 
 ---
 *Generated on: $(date)*
