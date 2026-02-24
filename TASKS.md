@@ -5,7 +5,7 @@
 - [x] Align `README.md`, `STATUS.md`, plan, and task tracking
 - [x] Add concise EPICS/PHASES high-level overview
 - [x] Define and enforce "maintenance mode" scope for this repo
-- [ ] Create a short handoff checklist for cross-repo focus
+- [x] Create a short handoff checklist for cross-repo focus
 
 ## Maintenance Mode Scope (Proposed)
 Only accept:
@@ -25,3 +25,6 @@ Only accept:
   - `/Users/nectios/nekotori/dev/intent-ecosystem/intent-cli/.github/ISSUE_TEMPLATE/bug-report.yml`
   - `/Users/nectios/nekotori/dev/intent-ecosystem/intent-cli/.github/ISSUE_TEMPLATE/change-request.yml`
   - `/Users/nectios/nekotori/dev/intent-ecosystem/intent-cli/.github/ISSUE_TEMPLATE/config.yml`
+
+## Handoff
+- Checklist: `/Users/nectios/nekotori/dev/intent-ecosystem/intent-cli/docs/HANDOFF_CHECKLIST.md`
